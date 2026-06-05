@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SilverBrain — brain dump, Eisenhower sort, tasks, and Pomodoro focus in one calm desktop app." />
+  <meta name="theme-color" content="#010102" />
+  <meta property="og:title" content="SilverBrain — Clear your mind. Focus on what matters." />
+  <meta property="og:description" content="Brain dump, Eisenhower sort, tasks, and Pomodoro focus in one calm desktop app." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://osamadel.github.io/SilverBrain/assets/sort.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="assets/logo.png" type="image/png" />
+  <title>SilverBrain — Clear your mind. Focus on what matters.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --canvas: #010102;
+      --surface: #131316;
+      --surface-2: #23252a;
+      --on-surface: #e5e1e6;
+      --ink-subtle: #8a8f98;
+      --ink-tertiary: #62666d;
+      --primary: #bdc2ff;
+      --primary-hover: #828fff;
+      --primary-container: #5e6ad2;
+      --hairline: #23252a;
+      --q1: #ff4d4d;
+      --q2: #4d79ff;
+      --q3: #27a644;
+      --q4: #62666d;
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body: 'Inter', system-ui, sans-serif;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --max: 1120px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--canvas);
+      color: var(--on-surface);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .wrap {
+      width: min(100% - 2.5rem, var(--max));
+      margin-inline: auto;
+    }
+
+    /* ── Header ── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid var(--hairline);
+      background: color-mix(in srgb, var(--canvas) 88%, transparent);
+      backdrop-filter: blur(12px);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand img {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      image-rendering: pixelated;
+    }
+
+    .brand span {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.125rem;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      font-size: 0.875rem;
+      color: var(--ink-subtle);
+    }
+
+    .nav-links a:hover { color: var(--on-surface); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.625rem 1.25rem;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s var(--ease), color 0.2s var(--ease), transform 0.15s var(--ease);
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .btn-primary {
+      background: var(--primary-container);
+      color: #fdfaff;
+    }
+
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--ink-subtle);
+      border: 1px solid var(--hairline);
+    }
+
+    .btn-ghost:hover {
+      color: var(--on-surface);
+      border-color: var(--ink-tertiary);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 5rem 0 4rem;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--primary);
+      border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+      background: color-mix(in srgb, var(--primary) 8%, transparent);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.25rem, 5vw, 3.5rem);
+      font-weight: 700;
+      line-height: 1.12;
+      letter-spacing: -0.03em;
+      max-width: 18ch;
+      margin-inline: auto;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero p {
+      font-size: clamp(1rem, 2vw, 1.125rem);
+      color: var(--ink-subtle);
+      max-width: 52ch;
+      margin-inline: auto;
+      margin-bottom: 2rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .hero-visual {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--hairline);
+      background: var(--surface);
+      box-shadow: 0 24px 80px color-mix(in srgb, #000 55%, transparent);
+    }
+
+    .hero-visual img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* ── Workflow ── */
+    .workflow {
+      padding: 5rem 0;
+      border-top: 1px solid var(--hairline);
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.75rem, 3vw, 2.25rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+    }
+
+    .section-desc {
+      color: var(--ink-subtle);
+      max-width: 50ch;
+      margin-bottom: 3rem;
+    }
+
+    .steps {
+      display: grid;
+      gap: 3rem;
+    }
+
+    .step {
+      display: grid;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    @media (min-width: 768px) {
+      .step { grid-template-columns: 1fr 1fr; }
+      .step:nth-child(even) .step-copy { order: 2; }
+      .step:nth-child(even) .step-img { order: 1; }
+    }
+
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 8px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .step:nth-child(1) .step-num { background: color-mix(in srgb, var(--q2) 20%, transparent); color: var(--q2); }
+    .step:nth-child(2) .step-num { background: color-mix(in srgb, var(--q1) 20%, transparent); color: var(--q1); }
+    .step:nth-child(3) .step-num { background: color-mix(in srgb, var(--q3) 20%, transparent); color: var(--q3); }
+    .step:nth-child(4) .step-num { background: color-mix(in srgb, var(--primary) 20%, transparent); color: var(--primary); }
+
+    .step h3 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .step p { color: var(--ink-subtle); font-size: 0.9375rem; }
+
+    .step-img {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--hairline);
+      background: var(--surface);
+    }
+
+    .step-img img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* ── Features grid ── */
+    .features {
+      padding: 5rem 0;
+      border-top: 1px solid var(--hairline);
+    }
+
+    .feature-grid {
+      display: grid;
+      gap: 1.25rem;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .feature-card {
+      padding: 1.5rem;
+      border-radius: 12px;
+      border: 1px solid var(--hairline);
+      background: var(--surface);
+    }
+
+    .feature-card h4 {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+
+    .feature-card p {
+      font-size: 0.8125rem;
+      color: var(--ink-subtle);
+    }
+
+    /* ── Privacy ── */
+    .privacy {
+      padding: 4rem 0;
+      border-top: 1px solid var(--hairline);
+    }
+
+    .privacy-box {
+      padding: 2rem;
+      border-radius: 14px;
+      border: 1px solid var(--hairline);
+      background: linear-gradient(135deg, var(--surface) 0%, color-mix(in srgb, var(--primary-container) 12%, var(--surface)) 100%);
+      text-align: center;
+    }
+
+    .privacy-box h3 {
+      font-family: var(--font-display);
+      font-size: 1.375rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .privacy-box p {
+      color: var(--ink-subtle);
+      font-size: 0.9375rem;
+      max-width: 55ch;
+      margin-inline: auto;
+    }
+
+    /* ── CTA ── */
+    .cta {
+      padding: 5rem 0 6rem;
+      text-align: center;
+    }
+
+    .cta h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.75rem, 3vw, 2.5rem);
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .cta p {
+      color: var(--ink-subtle);
+      margin-bottom: 2rem;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--hairline);
+      padding: 2rem 0;
+      font-size: 0.8125rem;
+      color: var(--ink-tertiary);
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.25rem;
+    }
+
+    .footer-links a:hover { color: var(--on-surface); }
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: auto;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+
+    .skip-link:focus {
+      position: fixed;
+      left: 1rem;
+      top: 1rem;
+      z-index: 100;
+      width: auto;
+      height: auto;
+      padding: 0.5rem 1rem;
+      background: var(--primary-container);
+      color: #fff;
+      border-radius: 8px;
+      font-size: 0.875rem;
+    }
+
+    @media (max-width: 640px) {
+      .nav-links .hide-sm { display: none; }
+      .hero { padding-top: 3rem; }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <header>
+    <div class="wrap nav">
+      <a class="brand" href="#">
+        <img src="assets/logo.png" alt="SilverBrain logo" width="36" height="36" />
+        <span>SilverBrain</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#workflow" class="hide-sm">Workflow</a>
+        <a href="#features" class="hide-sm">Features</a>
+        <a href="https://github.com/osamadel/SilverBrain" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a class="btn btn-primary" href="https://github.com/osamadel/SilverBrain/releases" target="_blank" rel="noopener noreferrer">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="wrap">
+        <p class="hero-badge">Desktop productivity</p>
+        <h1>Clear your mind. Focus on what matters.</h1>
+        <p>
+          Dump everything in your head, let AI extract the tasks, sort them on an
+          Eisenhower Matrix, and execute with Pomodoro focus — all in one calm desktop app.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://github.com/osamadel/SilverBrain/releases" target="_blank" rel="noopener noreferrer">
+            Get SilverBrain
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/osamadel/SilverBrain" target="_blank" rel="noopener noreferrer">
+            View source
+          </a>
+        </div>
+        <div class="hero-visual">
+          <img src="assets/sort.png" alt="SilverBrain Eisenhower Matrix sort view" width="1280" height="800" loading="eager" />
+        </div>
+      </div>
+    </section>
+
+    <section class="workflow" id="workflow">
+      <div class="wrap">
+        <p class="section-label">How it works</p>
+        <h2 class="section-title">From chaos to clarity in four steps</h2>
+        <p class="section-desc">
+          A single flow from messy thoughts to focused execution — no context switching between apps.
+        </p>
+
+        <div class="steps">
+          <article class="step">
+            <div class="step-copy">
+              <div class="step-num">1</div>
+              <h3>Brain Dump</h3>
+              <p>
+                A distraction-free canvas for freeform capture. Write everything — messy thoughts,
+                tasks, half-formed ideas. Press ⌘/Ctrl+Enter to extract.
+              </p>
+            </div>
+            <div class="step-img">
+              <img src="assets/brain-dump.png" alt="Brain Dump view" width="1280" height="800" loading="lazy" />
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-copy">
+              <div class="step-num">2</div>
+              <h3>Sort &amp; Prioritize</h3>
+              <p>
+                AI extracts your tasks and pre-sorts using learned preferences. Drag them into the
+                Eisenhower Matrix — Do First, Schedule, Delegate, or Eliminate.
+              </p>
+            </div>
+            <div class="step-img">
+              <img src="assets/sort.png" alt="Eisenhower Matrix sort view" width="1280" height="800" loading="lazy" />
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-copy">
+              <div class="step-num">3</div>
+              <h3>Tasks</h3>
+              <p>
+                A persistent checklist grouped by quadrant with done-state and badges.
+                Send any item straight to the Focus timer when you're ready to work.
+              </p>
+            </div>
+            <div class="step-img">
+              <img src="assets/tasks.png" alt="Tasks checklist view" width="1280" height="800" loading="lazy" />
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-copy">
+              <div class="step-num">4</div>
+              <h3>Focus</h3>
+              <p>
+                Pomodoro cycles with configurable focus, short break, and long break durations.
+                Stay in flow with desktop notifications when each sprint ends.
+              </p>
+            </div>
+            <div class="step-img">
+              <img src="assets/focus.png" alt="Pomodoro focus timer view" width="1280" height="800" loading="lazy" />
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="features" id="features">
+      <div class="wrap">
+        <p class="section-label">Built for you</p>
+        <h2 class="section-title">Thoughtful details</h2>
+        <p class="section-desc">Everything stays on your machine. You choose the LLM provider.</p>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4>Multi-provider LLM</h4>
+            <p>Anthropic, OpenAI, Google Gemini, or local Ollama — switch anytime in Settings.</p>
+          </div>
+          <div class="feature-card">
+            <h4>Sort memory</h4>
+            <p>The app learns your Eisenhower preferences over time and gets smarter with each session.</p>
+          </div>
+          <div class="feature-card">
+            <h4>Session history</h4>
+            <p>Every brain dump becomes a titled session you can restore from history at any time.</p>
+          </div>
+          <div class="feature-card">
+            <h4>English &amp; Arabic</h4>
+            <p>Full UI in English or Egyptian Arabic with RTL layout and native typography.</p>
+          </div>
+          <div class="feature-card">
+            <h4>Native macOS shell</h4>
+            <p>Overlay title bar, traffic-light controls, and a collapsible sidebar for a calm workspace.</p>
+          </div>
+          <div class="feature-card">
+            <h4>Keyboard-first</h4>
+            <p>⌘/Ctrl+Enter, sidebar toggle, session history, and more — press ⌘/Ctrl+/ for the full list.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="privacy" id="privacy">
+      <div class="wrap">
+        <div class="privacy-box">
+          <h3>Your data stays local</h3>
+          <p>
+            Settings, sessions, and sort memory are stored in plain files on your machine.
+            Nothing is uploaded except the LLM calls you configure — and only to the provider you choose.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="wrap">
+        <h2>Ready to clear your mind?</h2>
+        <p>Free, open source, and built with Tauri for macOS, Linux, and Windows.</p>
+        <a class="btn btn-primary" href="https://github.com/osamadel/SilverBrain/releases" target="_blank" rel="noopener noreferrer">
+          Download from GitHub Releases
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap footer-inner">
+      <span>© 2026 SilverBrain</span>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="https://github.com/osamadel/SilverBrain" target="_blank" rel="noopener noreferrer">Repository</a>
+        <a href="https://github.com/osamadel/SilverBrain/releases" target="_blank" rel="noopener noreferrer">Releases</a>
+        <a href="#privacy">Privacy</a>
+      </nav>
+    </div>
+  </footer>
+
+</body>
+</html>
