@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SilverBrain - Eisenhower Tasks</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono&amp;family=Geist+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "hairline-strong": "#36393f",
+                        "secondary-fixed-dim": "#c5c7c7",
+                        "primary-container": "#5e6ad2",
+                        "eisenhower-delegate": "#27a644",
+                        "ink-subtle": "#8a8f98",
+                        "inverse-primary": "#4854bb",
+                        "on-error-container": "#ffdad6",
+                        "on-error": "#690005",
+                        "hairline": "#23252a",
+                        "secondary-container": "#47494a",
+                        "surface-variant": "#353438",
+                        "outline": "#908f9e",
+                        "on-primary-fixed-variant": "#2e3aa2",
+                        "eisenhower-do": "#ff4d4d",
+                        "on-secondary-fixed-variant": "#454747",
+                        "surface-container-low": "#1c1b1f",
+                        "ink-tertiary": "#62666d",
+                        "primary-fixed": "#dfe0ff",
+                        "surface-bright": "#39393c",
+                        "outline-variant": "#454652",
+                        "on-secondary-fixed": "#191c1c",
+                        "surface-container-high": "#2a292d",
+                        "primary-hover": "#828fff",
+                        "eisenhower-eliminate": "#62666d",
+                        "surface-2": "#23252a",
+                        "surface-3": "#2c2e35",
+                        "surface-container": "#201f23",
+                        "tertiary-fixed": "#ffddbb",
+                        "ink-muted": "#d0d6e0",
+                        "on-surface-variant": "#c6c5d5",
+                        "on-tertiary-fixed-variant": "#673d00",
+                        "surface-dim": "#131316",
+                        "on-primary": "#121f8b",
+                        "secondary": "#c5c7c7",
+                        "on-primary-container": "#fdfaff",
+                        "primary": "#bdc2ff",
+                        "eisenhower-schedule": "#4d79ff",
+                        "error": "#ffb4ab",
+                        "surface-1": "#16171b",
+                        "surface-container-highest": "#353438",
+                        "error-container": "#93000a",
+                        "tertiary-fixed-dim": "#ffb867",
+                        "on-tertiary-fixed": "#2b1700",
+                        "surface-container-lowest": "#0e0e11",
+                        "on-primary-fixed": "#000965",
+                        "surface": "#131316",
+                        "surface-tint": "#bdc2ff",
+                        "on-background": "#e5e1e6",
+                        "secondary-fixed": "#e1e3e3",
+                        "tertiary": "#ffb867",
+                        "on-tertiary-container": "#fffaf8",
+                        "primary-focus": "#5e69d1",
+                        "surface-4": "#3c3f4a",
+                        "background": "#131316",
+                        "tertiary-container": "#a56500",
+                        "on-secondary": "#2e3131",
+                        "inverse-on-surface": "#313034",
+                        "inverse-surface": "#e5e1e6",
+                        "primary-fixed-dim": "#bdc2ff",
+                        "on-tertiary": "#482900",
+                        "on-secondary-container": "#b7b9b9",
+                        "on-surface": "#e5e1e6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "12px",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "12px",
+                        "md": "16px",
+                        "xs": "8px",
+                        "lg": "24px",
+                        "xxl": "48px",
+                        "base": "4px",
+                        "xxs": "4px",
+                        "section": "96px",
+                        "xl": "32px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "mono": ["JetBrains Mono"],
+                        "headline": ["Geist Sans"],
+                        "subhead": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "button": ["Inter"],
+                        "display-md": ["Geist Sans"],
+                        "eyebrow": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "card-title": ["Inter"],
+                        "display-xl": ["Geist Sans"],
+                        "caption": ["Inter"],
+                        "body": ["Inter"],
+                        "display-lg": ["Geist Sans"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #131316;
+            color: #e5e1e6;
+            -webkit-font-smoothing: antialiased;
+        }
+        .dark body { background-color: #131316; color: #e5e1e6; }
+        .light body { background-color: #f9f9fb; color: #1c1b1f; }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .timer-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { border-color: rgba(94, 105, 209, 0.3); }
+            50% { border-color: rgba(94, 105, 209, 0.8); }
+        }
+        .sidebar-transition {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="font-body text-body bg-background selection:bg-primary-container selection:text-white transition-colors duration-300">
+<div class="flex min-h-screen relative overflow-x-hidden">
+<!-- SideNavBar (Hidden by default) -->
+<aside class="fixed inset-y-0 left-0 w-64 bg-surface-1 dark:bg-surface-1 border-r border-hairline py-lg gap-md z-50 sidebar-transition -translate-x-full shadow-2xl md:shadow-none" id="sidebar">
+<div class="px-lg mb-lg flex items-center justify-between">
+<div class="flex items-center gap-sm">
+<img alt="SilverBrain Logo" class="w-8 h-8 rounded-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJIL9y81LDi1buUYzGKUQfMOmv4FB-fCbE63NDXTvP2kYXTgUPqPQ6x4OBgRiLLfnL8ZVzbCi7QNcDjuky_ywiEYR4ilEfFXbGWIqQ_88I3Fa-p8eFA58w2u3AaHcU3JGMI3PRLZk553xqJ26EeylMGvjRRKWxzPanA2Ja_qIWXWl0lei66jY_DZb4MWpIaSTlzL-JVX66iL3n-fZb7g29MVUckFVdhgfRy7hAQOfE0mxEND2gSe2E4S9AiuiYt5acY9cv-l6jWX0"/>
+<span class="font-headline text-headline font-bold text-primary">SilverBrain</span>
+</div>
+<button class="md:hidden text-ink-subtle" onclick="toggleSidebar()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<nav class="flex-1 space-y-xxs">
+<a class="flex items-center gap-sm px-lg py-md text-ink-subtle hover:bg-surface-2 hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-button text-button">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm px-lg py-md bg-surface-2 text-primary border-l-4 border-primary translate-x-1 transition-all" href="#">
+<span class="material-symbols-outlined">checklist</span>
+<span class="font-button text-button">Tasks</span>
+</a>
+<a class="flex items-center gap-sm px-lg py-md text-ink-subtle hover:bg-surface-2 hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-button text-button">Eisenhower</span>
+</a>
+<a class="flex items-center gap-sm px-lg py-md text-ink-subtle hover:bg-surface-2 hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="font-button text-button">Analytics</span>
+</a>
+</nav>
+<!-- Pomodoro Status in Sidebar -->
+<div class="mt-auto px-lg">
+<div class="p-md rounded-lg bg-surface-2 border border-primary-focus/30 timer-pulse">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-eyebrow text-eyebrow text-ink-tertiary uppercase tracking-wider">Deep Work</span>
+<span class="w-2 h-2 rounded-full bg-primary-focus"></span>
+</div>
+<div class="font-mono text-[24px] text-on-surface">24:12</div>
+<button class="mt-md w-full py-xs px-sm bg-surface-3 border border-hairline rounded text-caption font-button hover:bg-surface-4 transition-colors">
+                    Stop Timer
+                </button>
+</div>
+<div class="mt-lg pt-lg border-t border-hairline">
+<div class="flex items-center gap-sm mb-xs">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary font-bold">JD</div>
+<div class="overflow-hidden">
+<p class="font-button text-button truncate">John Doe</p>
+<p class="font-caption text-caption text-ink-tertiary">Pro Plan</p>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Overlay for mobile sidebar -->
+<div class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity duration-300 opacity-0" id="overlay" onclick="toggleSidebar()"></div>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-h-screen">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-40 bg-surface-1 dark:bg-surface-1 border-b border-hairline transition-colors">
+<div class="flex justify-between items-center w-full px-lg h-16 max-w-[1280px] mx-auto">
+<div class="flex items-center gap-md">
+<!-- Sidebar Toggle Button -->
+<button class="p-2 -ml-2 text-ink-subtle hover:text-primary transition-colors flex items-center justify-center" onclick="toggleSidebar()">
+<span class="material-symbols-outlined">menu_open</span>
+</button>
+<div class="flex items-center gap-xs">
+<img alt="SilverBrain" class="w-6 h-6 rounded-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJIL9y81LDi1buUYzGKUQfMOmv4FB-fCbE63NDXTvP2kYXTgUPqPQ6x4OBgRiLLfnL8ZVzbCi7QNcDjuky_ywiEYR4ilEfFXbGWIqQ_88I3Fa-p8eFA58w2u3AaHcU3JGMI3PRLZk553xqJ26EeylMGvjRRKWxzPanA2Ja_qIWXWl0lei66jY_DZb4MWpIaSTlzL-JVX66iL3n-fZb7g29MVUckFVdhgfRy7hAQOfE0mxEND2gSe2E4S9AiuiYt5acY9cv-l6jWX0"/>
+<h1 class="font-headline text-body font-bold text-primary hidden sm:block">SilverBrain</h1>
+</div>
+<div class="h-6 w-[1px] bg-hairline-strong mx-2"></div>
+<nav class="hidden sm:flex items-center gap-lg">
+<a class="font-body text-body text-ink-subtle hover:text-on-surface transition-colors" href="#">Brain Dump</a>
+<a class="font-body text-body text-ink-subtle hover:text-on-surface transition-colors" href="#">Sort</a>
+<a class="font-body text-body text-primary border-b-2 border-primary pb-1" href="#">Focus</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-ink-subtle hover:text-on-surface transition-colors" id="theme-toggle" onclick="toggleDarkMode()">dark_mode</button>
+<button class="material-symbols-outlined text-ink-subtle hover:text-on-surface transition-colors">settings</button>
+<button class="material-symbols-outlined text-ink-subtle hover:text-on-surface transition-colors">account_circle</button>
+</div>
+</div>
+</header>
+<!-- Task List Content -->
+<div class="p-lg max-w-[1280px] mx-auto w-full space-y-xl">
+<section class="space-y-xl">
+<!-- Quadrant 1: DO FIRST -->
+<div class="space-y-md">
+<div class="flex items-center gap-sm">
+<div class="w-1 h-3 bg-eisenhower-do rounded-full"></div>
+<span class="font-eyebrow text-caption text-ink-subtle uppercase tracking-[0.1em]">Do First</span>
+<div class="h-[1px] flex-1 bg-hairline-strong/30"></div>
+<span class="text-[10px] text-ink-tertiary">3 TASKS</span>
+</div>
+<div class="grid gap-xs">
+<!-- Task Item -->
+<div class="group flex items-center justify-between p-md bg-surface-1 dark:bg-surface-1 border border-hairline rounded-lg hover:border-outline-variant transition-all">
+<div class="flex items-center gap-md">
+<div class="w-5 h-5 rounded border border-outline/30 flex items-center justify-center hover:border-primary cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-transparent group-hover:text-ink-tertiary text-[14px]">check</span>
+</div>
+<div>
+<h3 class="font-body text-body font-medium text-on-surface">Finalize Q3 Strategic Presentation</h3>
+<p class="font-caption text-caption text-ink-tertiary">Due Today • Strategic Planning</p>
+</div>
+</div>
+<button class="text-ink-subtle hover:text-primary transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]">play_circle</span>
+</button>
+</div>
+<!-- Task Item -->
+<div class="group flex items-center justify-between p-md bg-surface-1 dark:bg-surface-1 border border-hairline rounded-lg hover:border-outline-variant transition-all">
+<div class="flex items-center gap-md">
+<div class="w-5 h-5 rounded border border-outline/30 flex items-center justify-center"></div>
+<div>
+<h3 class="font-body text-body font-medium text-on-surface">Emergency server patch deployment</h3>
+<p class="font-caption text-caption text-ink-tertiary">Critical • Infrastructure</p>
+</div>
+</div>
+<button class="text-ink-subtle hover:text-primary transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]">play_circle</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Quadrant 2: SCHEDULE -->
+<div class="space-y-md">
+<div class="flex items-center gap-sm">
+<div class="w-1 h-3 bg-eisenhower-schedule rounded-full"></div>
+<span class="font-eyebrow text-caption text-ink-subtle uppercase tracking-[0.1em]">Schedule</span>
+<div class="h-[1px] flex-1 bg-hairline-strong/30"></div>
+<span class="text-[10px] text-ink-tertiary">2 TASKS</span>
+</div>
+<div class="grid gap-xs">
+<div class="group flex items-center justify-between p-md bg-surface-1 dark:bg-surface-1 border border-hairline rounded-lg hover:border-outline-variant transition-all">
+<div class="flex items-center gap-md">
+<div class="w-5 h-5 rounded border border-outline/30 flex items-center justify-center"></div>
+<div>
+<h3 class="font-body text-body font-medium text-on-surface">Weekly Team Sync &amp; Mentorship</h3>
+<p class="font-caption text-caption text-ink-tertiary">Wednesday, 10:00 AM • Management</p>
+</div>
+</div>
+<button class="text-ink-subtle hover:text-primary transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]">play_circle</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Quadrant 3: DELEGATE -->
+<div class="space-y-md">
+<div class="flex items-center gap-sm">
+<div class="w-1 h-3 bg-eisenhower-delegate rounded-full"></div>
+<span class="font-eyebrow text-caption text-ink-subtle uppercase tracking-[0.1em]">Delegate</span>
+<div class="h-[1px] flex-1 bg-hairline-strong/30"></div>
+<span class="text-[10px] text-ink-tertiary">1 TASK</span>
+</div>
+<div class="grid gap-xs">
+<div class="group flex items-center justify-between p-md bg-surface-1 dark:bg-surface-1 border border-hairline rounded-lg hover:border-outline-variant transition-all">
+<div class="flex items-center gap-md">
+<div class="w-5 h-5 rounded border border-outline/30 flex items-center justify-center"></div>
+<div>
+<h3 class="font-body text-body font-medium text-on-surface">Data entry for monthly expenditure</h3>
+<p class="font-caption text-caption text-ink-tertiary">Assign to Assistant • Admin</p>
+</div>
+</div>
+<button class="text-ink-subtle hover:text-primary transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]">play_circle</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Quadrant 4: ELIMINATE -->
+<div class="space-y-md">
+<div class="flex items-center gap-sm">
+<div class="w-1 h-3 bg-eisenhower-eliminate rounded-full"></div>
+<span class="font-eyebrow text-caption text-ink-subtle uppercase tracking-[0.1em]">Eliminate</span>
+<div class="h-[1px] flex-1 bg-hairline-strong/30"></div>
+<span class="text-[10px] text-ink-tertiary">4 TASKS</span>
+</div>
+<div class="grid gap-xs opacity-50">
+<div class="group flex items-center justify-between p-md bg-surface-1 dark:bg-surface-1 border border-hairline rounded-lg hover:border-outline-variant transition-all">
+<div class="flex items-center gap-md">
+<div class="w-5 h-5 rounded border border-outline/30 flex items-center justify-center"></div>
+<div>
+<h3 class="font-body text-body font-medium text-on-surface">Browse irrelevant design forums</h3>
+<p class="font-caption text-caption text-ink-tertiary">Low Value • Distraction</p>
+</div>
+</div>
+<button class="text-ink-subtle hover:text-error transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]">delete_outline</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Status Indicator -->
+<div class="flex flex-col items-center gap-md pt-lg pb-xxl">
+<div class="flex items-center gap-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-ink-tertiary/20"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-ink-tertiary/20"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary ring-4 ring-primary/10"></span>
+</div>
+<p class="font-caption text-[10px] text-ink-tertiary uppercase tracking-[0.2em]">Execute Phase Active</p>
+</div>
+</div>
+</main>
+</div>
+<!-- Floating Action Button -->
+<div class="fixed bottom-6 right-6 z-50">
+<button class="w-14 h-14 rounded-full bg-primary text-on-primary shadow-xl flex items-center justify-center active:scale-95 transition-transform">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+<script>
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    let isSidebarOpen = false;
+
+    function toggleSidebar() {
+        isSidebarOpen = !isSidebarOpen;
+        if (isSidebarOpen) {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+            setTimeout(() => overlay.classList.add('opacity-100'), 10);
+        } else {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.remove('opacity-100');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
+        }
+    }
+
+    function toggleDarkMode() {
+        const html = document.documentElement;
+        const icon = document.getElementById('theme-toggle');
+        if (html.classList.contains('dark')) {
+            html.classList.remove('dark');
+            html.classList.add('light');
+            icon.textContent = 'light_mode';
+        } else {
+            html.classList.remove('light');
+            html.classList.add('dark');
+            icon.textContent = 'dark_mode';
+        }
+    }
+
+    // Micro-interaction for Play Buttons
+    document.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const icon = this.querySelector('.material-symbols-outlined');
+            if(icon?.textContent === 'play_circle') {
+                icon.textContent = 'pause_circle';
+                icon.classList.add('text-primary');
+            } else if (icon?.textContent === 'pause_circle') {
+                icon.textContent = 'play_circle';
+                icon.classList.remove('text-primary');
+            }
+        });
+    });
+</script>
+</body></html>

@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SilverBrain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ONBOARDING OVERLAY
+════════════════════════════════════════════════════════════ -->
+<div class="onboarding-overlay" id="onboardingOverlay">
+  <div class="onboarding-card">
+    <div class="ob-dots">
+      <div class="ob-dot active" id="obDot0"></div>
+      <div class="ob-dot" id="obDot1"></div>
+      <div class="ob-dot" id="obDot2"></div>
+    </div>
+
+    <div class="ob-step active" id="obStep0">
+      <div class="ob-icon"><span class="material-symbols-outlined">edit_note</span></div>
+      <h2 class="ob-title" data-i18n="ob-title-0">Brain Dump</h2>
+      <p class="ob-desc" data-i18n="ob-desc-0">Start by typing everything on your mind — messy thoughts, tasks, half-formed ideas. Don't filter. Just write.</p>
+    </div>
+
+    <div class="ob-step" id="obStep1">
+      <div class="ob-icon"><span class="material-symbols-outlined">grid_view</span></div>
+      <h2 class="ob-title" data-i18n="ob-title-1">Sort & Prioritize</h2>
+      <p class="ob-desc" data-i18n="ob-desc-1">The AI extracts your tasks. Drag them into the Eisenhower Matrix to sort by urgency and importance.</p>
+    </div>
+
+    <div class="ob-step" id="obStep2">
+      <div class="ob-icon"><span class="material-symbols-outlined">timer</span></div>
+      <h2 class="ob-title" data-i18n="ob-title-2">Focus & Execute</h2>
+      <p class="ob-desc" data-i18n="ob-desc-2">Use the Pomodoro timer to work in focused sprints. Send tasks from the matrix straight to your focus queue.</p>
+    </div>
+
+    <div class="ob-actions">
+      <button class="ob-skip" id="obSkip" data-i18n="ob-skip">Skip</button>
+      <button class="ob-next" id="obNext">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SETTINGS MODAL
+════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop hidden" id="modalBackdrop">
+  <div class="modal settings-modal">
+    <button class="modal-close-btn" id="modalCloseBtn" type="button" aria-label="Close" title="Close">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+
+    <div class="settings-layout">
+      <nav class="modal-tabs" id="settingsTabs" role="tablist" aria-orientation="vertical">
+        <button class="modal-tab active" type="button" role="tab" data-tab="about" id="settingsTab-about" aria-controls="settingsPanel-about" aria-selected="true">
+          <span class="material-symbols-outlined">info</span>
+          <span data-i18n="tab-about">About</span>
+        </button>
+        <button class="modal-tab" type="button" role="tab" data-tab="llm" id="settingsTab-llm" aria-controls="settingsPanel-llm">
+          <span class="material-symbols-outlined">auto_awesome</span>
+          <span data-i18n="tab-llm">Model</span>
+        </button>
+        <button class="modal-tab" type="button" role="tab" data-tab="appearance" id="settingsTab-appearance" aria-controls="settingsPanel-appearance">
+          <span class="material-symbols-outlined">contrast</span>
+          <span data-i18n="section-appearance">Appearance</span>
+        </button>
+        <button class="modal-tab" type="button" role="tab" data-tab="prompt" id="settingsTab-prompt" aria-controls="settingsPanel-prompt">
+          <span class="material-symbols-outlined">data_object</span>
+          <span data-i18n="tab-prompt">Extraction</span>
+        </button>
+        <button class="modal-tab" type="button" role="tab" data-tab="tasks" id="settingsTab-tasks" aria-controls="settingsPanel-tasks">
+          <span class="material-symbols-outlined">checklist</span>
+          <span data-i18n="section-tasks">Tasks</span>
+        </button>
+        <button class="modal-tab" type="button" role="tab" data-tab="pomodoro" id="settingsTab-pomodoro" aria-controls="settingsPanel-pomodoro">
+          <span class="material-symbols-outlined">timer</span>
+          <span data-i18n="tab-pomodoro">Pomodoro</span>
+        </button>
+        <button class="modal-tab" type="button" role="tab" data-tab="language" id="settingsTab-language" aria-controls="settingsPanel-language">
+          <span class="material-symbols-outlined">language</span>
+          <span data-i18n="section-language">Language</span>
+        </button>
+      </nav>
+
+      <div class="settings-panels">
+    <!-- About panel -->
+    <div class="modal-tabpanel" role="tabpanel" data-panel="about" id="settingsPanel-about" aria-labelledby="settingsTab-about">
+      <div class="modal-body">
+        <div class="about-card">
+          <img src="/stitch/silverbrain_pixel_logo/screen.png" alt="SilverBrain" class="about-logo" />
+          <div class="about-name">SilverBrain</div>
+          <p class="about-desc" data-i18n="about-desc">Dump your thoughts, extract tasks with AI, sort them on an Eisenhower matrix, and focus with Pomodoro.</p>
+        </div>
+        <dl class="about-rows">
+          <div class="about-row">
+            <dt data-i18n="about-version">Version</dt>
+            <dd id="aboutVersion">—</dd>
+          </div>
+          <div class="about-row">
+            <dt data-i18n="about-platform">Platform</dt>
+            <dd id="aboutPlatform">—</dd>
+          </div>
+          <div class="about-row" id="aboutTauriRow" hidden>
+            <dt data-i18n="about-tauri">Tauri</dt>
+            <dd id="aboutTauri">—</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+
+    <!-- Language Model panel -->
+    <div class="modal-tabpanel" role="tabpanel" data-panel="llm" id="settingsPanel-llm" aria-labelledby="settingsTab-llm" hidden>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label for="providerSelect" data-i18n="label-provider">Provider</label>
+          <div class="select-wrap">
+            <select id="providerSelect"></select>
+            <span class="material-symbols-outlined select-arrow">expand_more</span>
+          </div>
+        </div>
+
+        <div class="modal-field">
+          <label for="modelInput" data-i18n="label-model">Model ID</label>
+          <input type="text" id="modelInput" placeholder="model name" data-i18n-placeholder="ph-model" autocomplete="off" />
+          <div class="modal-note" id="modelHint"></div>
+        </div>
+
+        <div class="modal-field" id="apiKeyField">
+          <label for="apiKeyInput" data-i18n="label-api-key">API Key</label>
+          <input type="password" id="apiKeyInput" placeholder="sk-…" autocomplete="off" />
+          <div class="modal-note" id="apiKeyHint"></div>
+        </div>
+
+        <div class="modal-field" id="baseUrlField" style="display:none">
+          <label for="baseUrlInput" data-i18n="label-base-url">Base URL</label>
+          <input type="text" id="baseUrlInput" placeholder="http://localhost:11434" autocomplete="off" />
+        </div>
+
+        <div class="modal-security">
+          <span class="material-symbols-outlined">lock</span>
+          <span data-i18n="security-note">Stored locally · never transmitted to our servers</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Appearance panel -->
+    <div class="modal-tabpanel" role="tabpanel" data-panel="appearance" id="settingsPanel-appearance" aria-labelledby="settingsTab-appearance" hidden>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label data-i18n="label-theme">Theme</label>
+          <div class="seg-control" id="themeControl">
+            <button type="button" class="seg-btn" data-theme="dark" data-i18n="theme-dark">Dark</button>
+            <button type="button" class="seg-btn" data-theme="light" data-i18n="theme-light">Light</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Task Extraction panel -->
+    <div class="modal-tabpanel" role="tabpanel" data-panel="prompt" id="settingsPanel-prompt" aria-labelledby="settingsTab-prompt" hidden>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label for="promptTextarea" data-i18n="label-prompt">Extraction prompt</label>
+          <textarea id="promptTextarea" class="prompt-textarea" spellcheck="false"></textarea>
+          <div class="modal-note" data-i18n="prompt-hint">Use {dump} where the brain dump text should go.</div>
+        </div>
+        <button class="btn-ghost btn-sm" id="promptResetBtn" type="button">
+          <span class="material-symbols-outlined">restart_alt</span>
+          <span data-i18n="btn-reset-prompt">Reset to default</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tasks panel -->
+    <div class="modal-tabpanel" role="tabpanel" data-panel="tasks" id="settingsPanel-tasks" aria-labelledby="settingsTab-tasks" hidden>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label for="completedOrderSelect" data-i18n="label-completed-order">Completed tasks</label>
+          <div class="select-wrap">
+            <select id="completedOrderSelect">
+              <option value="bottom" data-i18n="opt-completed-bottom">Move to bottom of quadrant</option>
+              <option value="keep" data-i18n="opt-completed-keep">Keep in place</option>
+            </select>
+            <span class="material-symbols-outlined select-arrow">expand_more</span>
+          </div>
+          <div class="modal-note" data-i18n="completed-order-hint">Where finished tasks sit within each Eisenhower quadrant on the Tasks page.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pomodoro Durations panel -->
+    <div class="modal-tabpanel" role="tabpanel" data-panel="pomodoro" id="settingsPanel-pomodoro" aria-labelledby="settingsTab-pomodoro" hidden>
+      <div class="modal-body">
+        <div class="modal-pomo-row">
+          <div class="modal-pomo-field">
+            <label for="setFocus" data-i18n="label-focus-min">Focus (min)</label>
+            <input type="number" id="setFocus" min="1" max="120" value="25" />
+          </div>
+          <div class="modal-pomo-field">
+            <label for="setShort" data-i18n="label-short-break">Short break</label>
+            <input type="number" id="setShort" min="1" max="60" value="5" />
+          </div>
+          <div class="modal-pomo-field">
+            <label for="setLong" data-i18n="label-long-break">Long break</label>
+            <input type="number" id="setLong" min="1" max="60" value="15" />
+          </div>
+          <div class="modal-pomo-field">
+            <label for="setInterval" data-i18n="label-long-every">Long every</label>
+            <input type="number" id="setInterval" min="1" max="12" value="4" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Language panel -->
+    <div class="modal-tabpanel" role="tabpanel" data-panel="language" id="settingsPanel-language" aria-labelledby="settingsTab-language" hidden>
+      <div class="modal-body">
+        <div class="modal-field">
+          <div class="modal-label-row">
+            <label for="languageSelect" data-i18n="label-language">App Language</label>
+            <span class="coming-soon-chip" data-i18n="coming-soon">Coming Soon</span>
+          </div>
+          <div class="select-wrap">
+            <select id="languageSelect" disabled>
+              <option value="en">English</option>
+              <option value="ar">العربية (مصري)</option>
+            </select>
+            <span class="material-symbols-outlined select-arrow">expand_more</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+      </div><!-- /.settings-panels -->
+    </div><!-- /.settings-layout -->
+
+    <div class="modal-actions">
+      <button class="btn-ghost" id="modalCancelBtn" data-i18n="btn-discard">Discard</button>
+      <button class="btn-primary btn-auto" id="modalSaveBtn" data-i18n="btn-save">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HISTORY DIALOG
+════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop hidden" id="historyBackdrop">
+  <div class="modal history-modal">
+    <div class="modal-header-section">
+      <h2 class="modal-title" data-i18n="history-title">Brain Dump History</h2>
+      <p class="modal-desc" data-i18n="history-desc">Revisit a past brain dump to restore it and all its sorted tasks.</p>
+    </div>
+    <div class="history-list" id="historyList"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="historyCloseBtn" data-i18n="btn-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     EXPORT DIALOG
+════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop hidden" id="exportBackdrop">
+  <div class="modal export-modal">
+    <div class="modal-header-section">
+      <h2 class="modal-title" data-i18n="export-title">Markdown Export</h2>
+      <p class="modal-desc" data-i18n="export-desc">Copy the markdown below into your notes or editor.</p>
+    </div>
+    <textarea class="output-md" id="exportMd" readonly></textarea>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="exportCloseBtn" data-i18n="btn-close">Close</button>
+      <button class="btn-primary btn-auto" id="exportCopyBtn">
+        <span class="material-symbols-outlined">content_copy</span>
+        <span data-i18n="btn-copy">Copy</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     APP SHELL — SIDEBAR
+════════════════════════════════════════════════════════════ -->
+
+<!-- Fixed toggle — only visible when the sidebar is collapsed -->
+<button class="sidebar-toggle sidebar-toggle--floating" id="sidebarToggleFloating" title="Toggle sidebar" aria-label="Toggle sidebar">
+  <span class="material-symbols-outlined">menu</span>
+</button>
+
+<aside id="sidebar">
+  <!-- Top zone clears the native traffic lights; draggable region -->
+  <div class="sidebar-header" data-tauri-drag-region>
+    <div class="brand">
+      <img src="/stitch/silverbrain_pixel_logo/screen.png" alt="SilverBrain" class="brand-logo" />
+      <span class="brand-name" data-i18n="brand-name">SilverBrain</span>
+    </div>
+    <button class="sidebar-toggle sidebar-toggle--inline" id="sidebarToggle" title="Toggle sidebar" aria-label="Toggle sidebar">
+      <span class="material-symbols-outlined">menu</span>
+    </button>
+  </div>
+
+  <nav class="tab-nav">
+    <button class="tab active" data-view="braindump">
+      <span class="material-symbols-outlined tab-icon">edit_note</span>
+      <span data-i18n="tab-braindump">Brain Dump</span>
+    </button>
+    <button class="tab" data-view="sort">
+      <span class="material-symbols-outlined tab-icon">grid_view</span>
+      <span data-i18n="tab-sort">Sort</span>
+    </button>
+    <button class="tab" data-view="todo">
+      <span class="material-symbols-outlined tab-icon">checklist</span>
+      <span data-i18n="tab-todo">Tasks</span>
+    </button>
+    <button class="tab" data-view="pomodoro">
+      <span class="material-symbols-outlined tab-icon">timer</span>
+      <span data-i18n="tab-focus">Focus</span>
+    </button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button class="sidebar-link" id="settingsBtn" title="Settings">
+      <span class="material-symbols-outlined">settings</span>
+      <span data-i18n="settings-btn-label">Settings</span>
+    </button>
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════════════
+     VIEW CONTAINER
+════════════════════════════════════════════════════════════ -->
+<div class="view-container" id="viewContainer">
+
+  <!-- ─────────────── BRAIN DUMP VIEW ─────────────── -->
+  <div class="view active" id="view-braindump">
+    <div class="bd-page">
+      <div class="bd-head">
+        <h2 class="bd-heading" data-i18n="bd-heading">Type everything that's on your mind</h2>
+        <p class="bd-sub" data-i18n="bd-sub">Messy thoughts, rough ideas, tasks, worries — don't filter, just write.</p>
+        <div class="bd-welcome hidden" id="bdWelcome">
+          <span class="bd-welcome-text" data-i18n="bd-welcome">Write freely — press ⌘/Ctrl + Enter when you're ready to extract tasks.</span>
+          <button class="bd-welcome-dismiss" id="bdWelcomeDismiss" type="button" aria-label="Dismiss" title="Dismiss">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="bd-body">
+        <div class="dump-center">
+          <div class="dump-card">
+            <div class="dump-editor">
+              <textarea
+                class="dump-textarea"
+                id="dumpInput"
+                data-i18n-placeholder="ph-dump"
+                placeholder="Start writing…"
+                spellcheck="false"
+              ></textarea>
+              <div class="dump-editor-actions">
+                <button type="button" class="extract-btn" id="extractBtn" aria-hidden="true" tabindex="-1">
+                  <span class="extract-btn-label" data-i18n="btn-extract">Extract Tasks</span>
+                  <span class="extract-kbd-chip" aria-hidden="true">
+                    <kbd id="extractKbdMod">⌘</kbd><kbd>Enter</kbd>
+                  </span>
+                </button>
+                <button type="button" class="dump-history-btn" id="historyBtn" data-i18n-title="history-btn-title" title="Brain dump history">
+                  <span class="material-symbols-outlined">history</span>
+                </button>
+              </div>
+            </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+  </div><!-- /#view-braindump -->
+
+  <!-- ─────────────── SORT VIEW ─────────────── -->
+  <div class="view" id="view-sort">
+    <div class="sort-page">
+      <div class="sort-head">
+        <h2 class="sort-heading" data-i18n="sort-heading">Organize your thoughts</h2>
+        <p class="sort-sub" data-i18n="sort-sub">Categorize your tasks using the Eisenhower Matrix to focus on what truly matters.</p>
+      </div>
+
+      <div class="sort-body">
+
+        <!-- Left drawer: unsorted tasks -->
+        <aside class="sort-drawer" id="sortDrawer">
+          <div class="drawer-inner">
+            <div class="drawer-head">
+              <span class="eyebrow" data-i18n="drawer-title">Tasks</span>
+              <span class="tasks-count" id="drawerCount">0</span>
+            </div>
+            <div class="drawer-list" id="sortDrawerList"></div>
+            <form class="drawer-add" id="drawerAddForm">
+              <input id="drawerAddInput" data-i18n-placeholder="drawer-add-ph" placeholder="Add a task…" autocomplete="off" />
+              <button class="icon-btn-sm" type="submit" title="Add">
+                <span class="material-symbols-outlined">add</span>
+              </button>
+            </form>
+          </div>
+        </aside>
+
+        <!-- Eisenhower matrix -->
+        <div class="matrix-panel">
+          <div class="matrix-grid">
+            <div class="quadrant q1" id="q1">
+              <div class="q-head">
+                <span class="q-label q-label-do" data-i18n="q-do-first">Do First</span>
+                <span class="q-sub" data-i18n="q1-sub">Urgent · Important</span>
+              </div>
+              <div class="drop-hint" id="hint-q1" data-i18n="drop-here">Drop tasks here</div>
+            </div>
+            <div class="quadrant q2" id="q2">
+              <div class="q-head">
+                <span class="q-label q-label-schedule" data-i18n="q-schedule">Schedule</span>
+                <span class="q-sub" data-i18n="q2-sub">Not urgent · Important</span>
+              </div>
+              <div class="drop-hint" id="hint-q2" data-i18n="drop-here">Drop tasks here</div>
+            </div>
+            <div class="quadrant q3" id="q3">
+              <div class="q-head">
+                <span class="q-label q-label-delegate" data-i18n="q-delegate">Delegate</span>
+                <span class="q-sub" data-i18n="q3-sub">Urgent · Not important</span>
+              </div>
+              <div class="drop-hint" id="hint-q3" data-i18n="drop-here">Drop tasks here</div>
+            </div>
+            <div class="quadrant q4" id="q4">
+              <div class="q-head">
+                <span class="q-label q-label-eliminate" data-i18n="q-eliminate">Eliminate</span>
+                <span class="q-sub" data-i18n="q4-sub">Not urgent · Not important</span>
+              </div>
+              <div class="drop-hint" id="hint-q4" data-i18n="drop-here">Drop tasks here</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /.sort-body -->
+
+      <!-- Bottom action bar -->
+      <div class="bottom-bar">
+        <button class="back-btn" id="sortBackBtn">
+          <span class="material-symbols-outlined">arrow_back</span>
+          <span data-i18n="btn-back">Back</span>
+        </button>
+        <span class="sort-status" id="sortStatusText" aria-hidden="true"></span>
+        <div class="bottom-actions">
+          <button class="btn-secondary btn-auto" id="exportBtn">
+            <span class="material-symbols-outlined">file_download</span>
+            <span data-i18n="btn-export-md">Export</span>
+          </button>
+          <button class="btn-primary btn-auto" id="finishSortBtn">
+            <span class="material-symbols-outlined">check</span>
+            <span data-i18n="btn-finish-sort">Finish Sorting</span>
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /.sort-page -->
+  </div><!-- /#view-sort -->
+
+  <!-- ─────────────── TODO VIEW ─────────────── -->
+  <div class="view" id="view-todo">
+    <div class="todo-wrap">
+
+      <div class="todo-top-row">
+        <h2 class="todo-heading" data-i18n="todo-heading">Tasks</h2>
+        <span class="eyebrow" id="todoStats">0 open · 0 total</span>
+      </div>
+
+      <form class="todo-add" id="todoForm">
+        <div class="todo-input-group">
+          <span class="material-symbols-outlined todo-add-icon">add</span>
+          <input type="text" id="todoInput" data-i18n-placeholder="ph-todo-add" placeholder="Add a task and press Enter…" autocomplete="off" />
+        </div>
+        <div class="todo-add-row">
+          <select id="todoQuadrant" title="Eisenhower quadrant">
+            <option value="" data-i18n="todo-opt-none">No quadrant</option>
+            <option value="q1" data-i18n="todo-opt-q1">Do first</option>
+            <option value="q2" data-i18n="todo-opt-q2">Schedule</option>
+            <option value="q3" data-i18n="todo-opt-q3">Delegate</option>
+            <option value="q4" data-i18n="todo-opt-q4">Eliminate</option>
+          </select>
+          <button class="btn-primary btn-auto" type="submit" data-i18n="btn-add">Add</button>
+        </div>
+      </form>
+
+      <div class="todo-list" id="todoList"></div>
+
+      <div class="todo-footer">
+        <button class="btn-link" id="clearDoneBtn" data-i18n="btn-clear-done">Clear completed</button>
+        <button class="btn-link" id="toggleDoneBtn" data-i18n="btn-show-done">Show completed</button>
+      </div>
+
+    </div>
+  </div><!-- /#view-todo -->
+
+  <!-- ─────────────── POMODORO VIEW ─────────────── -->
+  <div class="view" id="view-pomodoro">
+    <div class="pomo-wrap">
+
+      <div class="pomo-modes">
+        <button class="pomo-mode active" data-mode="focus" data-i18n="pomo-focus-btn">Focus</button>
+        <button class="pomo-mode" data-mode="short" data-i18n="pomo-short-btn">Short break</button>
+        <button class="pomo-mode" data-mode="long" data-i18n="pomo-long-btn">Long break</button>
+      </div>
+
+      <div class="pomo-timer-outer" id="pomoTimerOuter">
+        <div class="pomo-timer-ring">
+          <span class="pomo-mode-eyebrow" id="pomoModeLabel">FOCUS MODE</span>
+          <div class="pomo-time" id="pomoTime">25:00</div>
+          <div class="pomo-controls">
+            <button class="pomo-ctrl" id="pomoResetBtn" title="Reset">
+              <span class="material-symbols-outlined">restart_alt</span>
+            </button>
+            <button class="pomo-start-btn" id="pomoStartBtn">Start</button>
+            <button class="pomo-ctrl" title="Skip">
+              <span class="material-symbols-outlined">skip_next</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pomo-task-wrap" id="pomoTaskWrap">
+        <button type="button" class="pomo-task-btn" id="pomoTaskBtn" aria-haspopup="listbox" aria-expanded="false">
+          <span class="pomo-task" id="pomoTask" data-i18n="pomo-no-task">No task selected</span>
+          <span class="material-symbols-outlined pomo-task-chevron" aria-hidden="true">expand_more</span>
+        </button>
+        <div class="pomo-task-popover hidden" id="pomoTaskPopover" role="listbox"></div>
+      </div>
+
+      <div class="pomo-count" id="pomoCount">0 focus sessions completed</div>
+
+    </div>
+  </div><!-- /#view-pomodoro -->
+
+</div><!-- /.view-container -->
+
+<div class="toast-host" id="toastHost" aria-live="polite"></div>
+
+<!-- Fixed help / keyboard-shortcuts button, bottom-right on every page -->
+<button class="help-fab" id="helpBtn" title="Keyboard shortcuts" aria-label="Keyboard shortcuts">
+  <span class="material-symbols-outlined">help</span>
+</button>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HELP / KEYBOARD SHORTCUTS MODAL
+════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop hidden" id="helpBackdrop">
+  <div class="modal help-modal">
+    <button class="modal-close-btn" id="helpCloseBtn" type="button" aria-label="Close" title="Close">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+    <div class="modal-header-section">
+      <h2 class="modal-title" data-i18n="help-title">Keyboard Shortcuts</h2>
+      <p class="modal-desc" data-i18n="help-desc">Work faster without leaving the keyboard.</p>
+    </div>
+    <div class="modal-body">
+      <div class="kb-columns" id="helpGrid"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

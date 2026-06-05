@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono&amp;family=Geist+Sans:wght@600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Sans:wght@100..900&amp;family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "hairline-strong": "#36393f",
+                    "secondary-fixed-dim": "#c5c7c7",
+                    "primary-container": "#5e6ad2",
+                    "eisenhower-delegate": "#27a644",
+                    "ink-subtle": "#8a8f98",
+                    "inverse-primary": "#4854bb",
+                    "on-error-container": "#ffdad6",
+                    "on-error": "#690005",
+                    "hairline": "#23252a",
+                    "secondary-container": "#47494a",
+                    "surface-variant": "#353438",
+                    "outline": "#908f9e",
+                    "on-primary-fixed-variant": "#2e3aa2",
+                    "eisenhower-do": "#ff4d4d",
+                    "on-secondary-fixed-variant": "#454747",
+                    "surface-container-low": "#1c1b1f",
+                    "ink-tertiary": "#62666d",
+                    "primary-fixed": "#dfe0ff",
+                    "surface-bright": "#39393c",
+                    "outline-variant": "#454652",
+                    "on-secondary-fixed": "#191c1c",
+                    "surface-container-high": "#2a292d",
+                    "primary-hover": "#828fff",
+                    "eisenhower-eliminate": "#62666d",
+                    "surface-2": "#23252a",
+                    "surface-3": "#2c2e35",
+                    "surface-container": "#201f23",
+                    "tertiary-fixed": "#ffddbb",
+                    "ink-muted": "#d0d6e0",
+                    "on-surface-variant": "#c6c5d5",
+                    "on-tertiary-fixed-variant": "#673d00",
+                    "surface-dim": "#131316",
+                    "on-primary": "#121f8b",
+                    "secondary": "#c5c7c7",
+                    "on-primary-container": "#fdfaff",
+                    "primary": "#bdc2ff",
+                    "eisenhower-schedule": "#4d79ff",
+                    "error": "#ffb4ab",
+                    "surface-1": "#16171b",
+                    "surface-container-highest": "#353438",
+                    "error-container": "#93000a",
+                    "tertiary-fixed-dim": "#ffb867",
+                    "on-tertiary-fixed": "#2b1700",
+                    "surface-container-lowest": "#0e0e11",
+                    "on-primary-fixed": "#000965",
+                    "surface": "#131316",
+                    "surface-tint": "#bdc2ff",
+                    "on-background": "#e5e1e6",
+                    "secondary-fixed": "#e1e3e3",
+                    "tertiary": "#ffb867",
+                    "on-tertiary-container": "#fffaf8",
+                    "primary-focus": "#5e69d1",
+                    "surface-4": "#3c3f4a",
+                    "background": "#131316",
+                    "tertiary-container": "#a56500",
+                    "on-secondary": "#2e3131",
+                    "inverse-on-surface": "#313034",
+                    "inverse-surface": "#e5e1e6",
+                    "primary-fixed-dim": "#bdc2ff",
+                    "on-tertiary": "#482900",
+                    "on-secondary-container": "#b7b9b9",
+                    "on-surface": "#e5e1e6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "12px",
+                    "md": "16px",
+                    "xs": "8px",
+                    "lg": "24px",
+                    "xxl": "48px",
+                    "base": "4px",
+                    "xxs": "4px",
+                    "section": "96px",
+                    "xl": "32px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "mono": ["JetBrains Mono"],
+                    "headline": ["Geist Sans"],
+                    "subhead": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "button": ["Inter"],
+                    "display-md": ["Geist Sans"],
+                    "eyebrow": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "card-title": ["Inter"],
+                    "display-xl": ["Geist Sans"],
+                    "caption": ["Inter"],
+                    "body": ["Inter"],
+                    "display-lg": ["Geist Sans"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .modal-overlay {
+            backdrop-filter: blur(12px);
+            background-color: rgba(19, 19, 22, 0.6);
+        }
+        .light .modal-overlay {
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body min-h-screen selection:bg-primary/30">
+<!-- Shell Container -->
+<div class="flex h-screen overflow-hidden">
+<!-- SideNavBar Shared Component -->
+<aside class="hidden md:flex flex-col h-full py-lg gap-md bg-surface-1 border-r border-hairline w-64 shrink-0 dark:bg-surface-1 light:bg-white">
+<div class="px-lg mb-xl">
+<span class="font-headline text-headline font-bold text-primary">SilverBrain</span>
+</div>
+<nav class="flex-1 space-y-base px-sm">
+<a class="flex items-center gap-md px-md py-sm rounded-lg bg-surface-2 text-primary border-l-4 border-primary translate-x-1 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-button text-button">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-ink-subtle hover:bg-surface-2 hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="checklist">checklist</span>
+<span class="font-button text-button">Tasks</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-ink-subtle hover:bg-surface-2 hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-button text-button">Eisenhower</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-ink-subtle hover:bg-surface-2 hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="bar_chart">bar_chart</span>
+<span class="font-button text-button">Analytics</span>
+</a>
+</nav>
+<div class="mt-auto px-lg pt-lg border-t border-hairline">
+<div class="bg-surface-2 p-md rounded-lg border border-hairline mb-md">
+<p class="font-card-title text-card-title text-sm mb-xs">Current Focus</p>
+<p class="font-body-sm text-ink-subtle text-xs mb-md">Deep Work Session</p>
+<button class="w-full bg-primary-container text-on-primary-container font-button text-button py-xs rounded hover:bg-primary-hover transition-colors">Start Timer</button>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 relative overflow-y-auto">
+<!-- TopNavBar Shared Component -->
+<header class="sticky top-0 z-10 bg-surface-1 border-b border-hairline flex justify-between items-center w-full px-lg h-16 dark:bg-surface-1 light:bg-white">
+<div class="flex items-center gap-xl">
+<span class="md:hidden font-headline text-headline font-bold text-primary">SilverBrain</span>
+<nav class="hidden md:flex gap-lg">
+<a class="font-body text-body text-ink-subtle hover:text-on-surface transition-colors duration-200" href="#">Brain Dump</a>
+<a class="font-body text-body text-ink-subtle hover:text-on-surface transition-colors duration-200" href="#">Sort</a>
+<a class="font-body text-body text-ink-subtle hover:text-on-surface transition-colors duration-200" href="#">Focus</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<button class="p-xs text-ink-subtle hover:bg-surface-2 rounded-full transition-colors active:scale-95" onclick="toggleSettings()">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<button class="p-xs text-ink-subtle hover:bg-surface-2 rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Dashboard Background Grid (Simplified Visualization) -->
+<div class="max-w-[1280px] mx-auto p-lg grid grid-cols-12 gap-gutter opacity-40 select-none">
+<div class="col-span-12 md:col-span-8 bg-surface-1 border border-hairline rounded-lg p-lg h-64 dark:bg-surface-1 light:bg-white">
+<div class="h-4 w-32 bg-hairline-strong rounded mb-md"></div>
+<div class="space-y-sm">
+<div class="h-12 w-full bg-surface-2 rounded-lg border border-hairline"></div>
+<div class="h-12 w-full bg-surface-2 rounded-lg border border-hairline"></div>
+</div>
+</div>
+<div class="col-span-12 md:col-span-4 bg-surface-1 border border-hairline rounded-lg p-lg h-64 flex flex-col justify-center items-center dark:bg-surface-1 light:bg-white">
+<div class="h-24 w-24 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+</div>
+</div>
+<!-- Settings Modal Overlay -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-md modal-overlay transition-opacity duration-300" id="settings-modal">
+<div class="bg-surface-1 border border-hairline-strong w-full max-w-[480px] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 dark:bg-surface-1 light:bg-white light:border-gray-200">
+<!-- Branding & Header Section -->
+<div class="px-xl pt-xl pb-lg flex flex-col items-center text-center">
+<div class="relative mb-md">
+<img alt="SilverBrain Logo" class="h-16 w-16 rounded-xl shadow-lg border border-hairline-strong" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJIL9y81LDi1buUYzGKUQfMOmv4FB-fCbE63NDXTvP2kYXTgUPqPQ6x4OBgRiLLfnL8ZVzbCi7QNcDjuky_ywiEYR4ilEfFXbGWIqQ_88I3Fa-p8eFA58w2u3AaHcU3JGMI3PRLZk553xqJ26EeylMGvjRRKWxzPanA2Ja_qIWXWl0lei66jY_DZb4MWpIaSTlzL-JVX66iL3n-fZb7g29MVUckFVdhgfRy7hAQOfE0mxEND2gSe2E4S9AiuiYt5acY9cv-l6jWX0"/>
+</div>
+<h2 class="font-headline text-headline text-on-surface mb-xs">System Settings</h2>
+<p class="font-body-sm text-ink-subtle">Configure your intelligent workspace</p>
+<button class="absolute top-md right-md text-ink-tertiary hover:text-on-surface transition-colors p-base" onclick="toggleSettings()">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="px-xl pb-xl space-y-xl">
+<div class="space-y-lg">
+<!-- LLM Provider Section -->
+<div class="space-y-md">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-sm text-primary" data-icon="auto_awesome">auto_awesome</span>
+<h3 class="font-eyebrow text-eyebrow text-primary uppercase tracking-wider">Language Model</h3>
+</div>
+<div class="grid gap-lg">
+<!-- Provider Dropdown -->
+<div class="space-y-xs">
+<label class="font-button text-button text-ink-muted block" for="provider">Provider</label>
+<div class="relative">
+<select class="w-full bg-surface-2 border border-hairline rounded-xl px-md py-sm font-body text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none transition-all hover:bg-surface-3 light:bg-gray-50 light:border-gray-200" id="provider">
+<option value="openai">OpenAI</option>
+<option value="anthropic">Anthropic</option>
+<option value="groq">Groq</option>
+<option value="ollama">Ollama</option>
+</select>
+<div class="absolute right-md top-1/2 -translate-y-1/2 pointer-events-none text-ink-tertiary">
+<span class="material-symbols-outlined text-sm" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Model Name -->
+<div class="space-y-xs">
+<label class="font-button text-button text-ink-muted block" for="model">Model ID</label>
+<input class="w-full bg-surface-2 border border-hairline rounded-xl px-md py-sm font-mono text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all hover:bg-surface-3 light:bg-gray-50 light:border-gray-200 placeholder:text-ink-tertiary" id="model" placeholder="e.g. gpt-4o-mini" type="text"/>
+</div>
+<!-- API Key -->
+<div class="space-y-xs">
+<div class="flex justify-between items-center">
+<label class="font-button text-button text-ink-muted" for="api-key">API Key</label>
+</div>
+<div class="relative">
+<input class="w-full bg-surface-2 border border-hairline rounded-xl px-md py-sm font-mono text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all hover:bg-surface-3 light:bg-gray-50 light:border-gray-200 pr-12" id="api-key" placeholder="••••••••••••••••" type="password"/>
+<button class="absolute right-md top-1/2 -translate-y-1/2 text-ink-tertiary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="visibility">visibility</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Security Footnote -->
+<div class="bg-surface-2/50 p-md rounded-xl border border-hairline/50 flex gap-sm items-start light:bg-gray-50">
+<span class="material-symbols-outlined text-ink-subtle text-md mt-0.5" data-icon="lock">lock</span>
+<p class="font-body-sm text-ink-muted text-xs leading-relaxed">
+                                Keys are stored locally in your browser. They are never transmitted or saved on our servers.
+                            </p>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="px-xl py-lg bg-surface-2/30 border-t border-hairline flex items-center justify-between gap-md light:bg-gray-50">
+<button class="text-ink-subtle font-button text-button hover:text-on-surface transition-colors py-sm px-md" onclick="toggleSettings()">
+                            Discard
+                        </button>
+<button class="px-xl py-sm font-button text-button bg-secondary-container/80 text-on-secondary-container hover:bg-secondary-container rounded-xl transition-all active:scale-95 border border-hairline-strong/30 light:bg-gray-200 light:text-gray-800">
+                            Save Changes
+                        </button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- BottomNavBar Shared Component (Mobile) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-surface-1 flex items-center justify-around border-t border-hairline z-20 dark:bg-surface-1 light:bg-white">
+<a class="flex flex-col items-center gap-xxs text-primary" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-[10px] font-medium">Dashboard</span>
+</a>
+<a class="flex flex-col items-center gap-xxs text-ink-subtle" href="#">
+<span class="material-symbols-outlined" data-icon="checklist">checklist</span>
+<span class="text-[10px] font-medium">Tasks</span>
+</a>
+<a class="flex flex-col items-center gap-xxs text-ink-subtle" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="text-[10px] font-medium">Grid</span>
+</a>
+<a class="flex flex-col items-center gap-xxs text-ink-subtle" href="#">
+<span class="material-symbols-outlined" data-icon="bar_chart">bar_chart</span>
+<span class="text-[10px] font-medium">Stats</span>
+</a>
+</nav>
+<script>
+        function toggleSettings() {
+            const modal = document.getElementById('settings-modal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        // Handle Escape key
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('settings-modal');
+                if (!modal.classList.contains('hidden')) toggleSettings();
+            }
+        });
+
+        // Close on clicking overlay
+        document.getElementById('settings-modal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) toggleSettings();
+        });
+
+        // Demo light mode toggle via URL or system preference could be added here
+        // For now, ensuring the classes handle it based on 'dark' class on <html>
+    </script>
+</body></html>

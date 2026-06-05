@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SilverBrain - Sort Tasks</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono&amp;family=Geist+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .drag-ghost {
+            opacity: 0.4;
+            cursor: grabbing;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #23252a;
+            border-radius: 10px;
+        }
+        #sidebar-tasks {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #sidebar-tasks.collapsed {
+            transform: translateX(-100%);
+        }
+        .matrix-container {
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#4854bb",
+                        "surface": "#131316",
+                        "surface-tint": "#bdc2ff",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed": "#ffddbb",
+                        "background": "#131316",
+                        "on-tertiary": "#482900",
+                        "surface-variant": "#353438",
+                        "on-tertiary-container": "#fffaf8",
+                        "inverse-surface": "#e5e1e6",
+                        "ink-tertiary": "#62666d",
+                        "surface-dim": "#131316",
+                        "primary-hover": "#828fff",
+                        "on-secondary-fixed-variant": "#454747",
+                        "surface-container-high": "#2a292d",
+                        "surface-bright": "#39393c",
+                        "surface-container-low": "#1c1b1f",
+                        "surface-container-lowest": "#0e0e11",
+                        "tertiary-fixed-dim": "#ffb867",
+                        "tertiary-container": "#a56500",
+                        "error-container": "#93000a",
+                        "primary": "#bdc2ff",
+                        "surface-4": "#3c3f4a",
+                        "ink-subtle": "#8a8f98",
+                        "on-primary-fixed": "#000965",
+                        "primary-container": "#5e6ad2",
+                        "secondary": "#c5c7c7",
+                        "inverse-on-surface": "#313034",
+                        "error": "#ffb4ab",
+                        "hairline": "#23252a",
+                        "surface-1": "#16171b",
+                        "primary-fixed-dim": "#bdc2ff",
+                        "on-tertiary-fixed-variant": "#673d00",
+                        "eisenhower-schedule": "#4d79ff",
+                        "secondary-fixed": "#e1e3e3",
+                        "primary-focus": "#5e69d1",
+                        "outline-variant": "#454652",
+                        "primary-fixed": "#dfe0ff",
+                        "outline": "#908f9e",
+                        "on-error": "#690005",
+                        "on-background": "#e5e1e6",
+                        "ink-muted": "#d0d6e0",
+                        "on-tertiary-fixed": "#2b1700",
+                        "on-secondary": "#2e3131",
+                        "secondary-fixed-dim": "#c5c7c7",
+                        "on-secondary-container": "#b7b9b9",
+                        "on-primary": "#121f8b",
+                        "surface-3": "#2c2e35",
+                        "hairline-strong": "#36393f",
+                        "surface-container": "#201f23",
+                        "on-primary-fixed-variant": "#2e3aa2",
+                        "on-surface-variant": "#c6c5d5",
+                        "tertiary": "#ffb867",
+                        "surface-container-highest": "#353438",
+                        "surface-2": "#23252a",
+                        "eisenhower-delegate": "#27a644",
+                        "secondary-container": "#47494a",
+                        "on-surface": "#e5e1e6",
+                        "eisenhower-do": "#ff4d4d",
+                        "eisenhower-eliminate": "#62666d",
+                        "on-primary-container": "#fdfaff",
+                        "on-secondary-fixed": "#191c1c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "section": "96px",
+                        "md": "16px",
+                        "xxs": "4px",
+                        "xs": "8px",
+                        "xxl": "48px",
+                        "xl": "32px",
+                        "gutter": "24px",
+                        "base": "4px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "caption": ["Inter"],
+                        "eyebrow": ["Inter"],
+                        "display-lg": ["Geist Sans"],
+                        "button": ["Inter"],
+                        "mono": ["JetBrains Mono"],
+                        "headline": ["Geist Sans"],
+                        "body": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-xl": ["Geist Sans"],
+                        "display-md": ["Geist Sans"],
+                        "card-title": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "subhead": ["Inter"]
+                    },
+                    "fontSize": {
+                        "caption": ["12px", {"lineHeight": "1.40", "fontWeight": "400"}],
+                        "eyebrow": ["13px", {"lineHeight": "1.30", "letterSpacing": "0.4px", "fontWeight": "500"}],
+                        "display-lg": ["56px", {"lineHeight": "1.10", "letterSpacing": "-1.8px", "fontWeight": "600"}],
+                        "button": ["14px", {"lineHeight": "1.20", "fontWeight": "500"}],
+                        "mono": ["13px", {"lineHeight": "1.50", "fontWeight": "400"}],
+                        "headline": ["28px", {"lineHeight": "1.20", "letterSpacing": "-0.6px", "fontWeight": "600"}],
+                        "body": ["16px", {"lineHeight": "1.50", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.50", "fontWeight": "400"}],
+                        "display-xl": ["80px", {"lineHeight": "1.05", "letterSpacing": "-3.0px", "fontWeight": "600"}],
+                        "display-md": ["40px", {"lineHeight": "1.15", "letterSpacing": "-1.0px", "fontWeight": "600"}],
+                        "card-title": ["22px", {"lineHeight": "1.25", "letterSpacing": "-0.4px", "fontWeight": "500"}],
+                        "body-sm": ["14px", {"lineHeight": "1.50", "fontWeight": "400"}],
+                        "subhead": ["20px", {"lineHeight": "1.40", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-white transition-colors duration-300">
+<!-- Sidebar Toggle -->
+<button class="fixed left-0 top-1/2 -translate-y-1/2 z-[60] bg-surface-1 border-y border-r border-hairline rounded-r-lg p-xxs text-ink-subtle hover:text-primary transition-all shadow-lg" id="toggle-sidebar" title="Toggle task list">
+<span class="material-symbols-outlined" id="toggle-icon">chevron_right</span>
+</button>
+<!-- Task Sidebar (Hidden by default) -->
+<aside class="fixed top-0 left-0 bottom-0 w-80 bg-surface-1 border-r border-hairline z-50 collapsed pt-20 px-md flex flex-col shadow-2xl" id="sidebar-tasks">
+<div class="flex items-center justify-between mb-lg">
+<h2 class="font-card-title text-card-title flex items-center gap-xs">
+            Parsed Tasks
+            <span class="bg-surface-2 text-ink-subtle text-caption px-xs py-[2px] rounded-full border border-hairline">6</span>
+</h2>
+</div>
+<div class="flex flex-col gap-sm overflow-y-auto flex-1 pr-xs" id="task-pool">
+<!-- Task Card 1 -->
+<div class="group bg-surface-2 border border-hairline rounded-lg p-md cursor-grab active:cursor-grabbing hover:border-primary/50 transition-all duration-200 relative overflow-hidden" draggable="true">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-ink-tertiary"></div>
+<div class="flex flex-col gap-xxs">
+<h3 class="font-body text-body font-medium">Re-read Chapter 4 notes</h3>
+<p class="font-caption text-caption text-ink-subtle">Extracted from: Daily Journal</p>
+</div>
+</div>
+<!-- Task Card 2 -->
+<div class="group bg-surface-2 border border-hairline rounded-lg p-md cursor-grab active:cursor-grabbing hover:border-primary/50 transition-all duration-200 relative overflow-hidden" draggable="true">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-ink-tertiary"></div>
+<div class="flex flex-col gap-xxs">
+<h3 class="font-body text-body font-medium">Update Q3 Quarterly Report</h3>
+<p class="font-caption text-caption text-ink-subtle">Priority: High</p>
+</div>
+</div>
+<!-- Task Card 3 -->
+<div class="group bg-surface-2 border border-hairline rounded-lg p-md cursor-grab active:cursor-grabbing hover:border-primary/50 transition-all duration-200 relative overflow-hidden" draggable="true">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-ink-tertiary"></div>
+<div class="flex flex-col gap-xxs">
+<h3 class="font-body text-body font-medium">Reply to Sarah about UX feedback</h3>
+<p class="font-caption text-caption text-ink-subtle">Waiting on: Email</p>
+</div>
+</div>
+<!-- Task Card 4 -->
+<div class="group bg-surface-2 border border-hairline rounded-lg p-md cursor-grab active:cursor-grabbing hover:border-primary/50 transition-all duration-200 relative overflow-hidden" draggable="true">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-ink-tertiary"></div>
+<div class="flex flex-col gap-xxs">
+<h3 class="font-body text-body font-medium">Schedule dental appointment</h3>
+<p class="font-caption text-caption text-ink-subtle">Life Admin</p>
+</div>
+</div>
+<!-- Task Card 5 -->
+<div class="group bg-surface-2 border border-hairline rounded-lg p-md cursor-grab active:cursor-grabbing hover:border-primary/50 transition-all duration-200 relative overflow-hidden" draggable="true">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-ink-tertiary"></div>
+<div class="flex flex-col gap-xxs">
+<h3 class="font-body text-body font-medium">Fix broken link in footer</h3>
+<p class="font-caption text-caption text-ink-subtle">Project: Website</p>
+</div>
+</div>
+</div>
+<div class="py-md border-t border-hairline mt-auto">
+<button class="w-full flex items-center justify-center gap-xs p-sm border border-dashed border-hairline rounded-lg text-ink-subtle hover:text-on-surface hover:bg-surface-2 transition-all">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span class="font-button text-button">Add Task</span>
+</button>
+</div>
+</aside>
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-surface-dim/80 backdrop-blur-md border-b border-hairline h-16">
+<div class="flex justify-between items-center w-full px-lg h-full max-w-[1400px] mx-auto">
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-xs">
+<img alt="SilverBrain Logo" class="w-8 h-8 rounded-lg object-contain bg-white/5 p-[2px]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJIL9y81LDi1buUYzGKUQfMOmv4FB-fCbE63NDXTvP2kYXTgUPqPQ6x4OBgRiLLfnL8ZVzbCi7QNcDjuky_ywiEYR4ilEfFXbGWIqQ_88I3Fa-p8eFA58w2u3AaHcU3JGMI3PRLZk553xqJ26EeylMGvjRRKWxzPanA2Ja_qIWXWl0lei66jY_DZb4MWpIaSTlzL-JVX66iL3n-fZb7g29MVUckFVdhgfRy7hAQOfE0mxEND2gSe2E4S9AiuiYt5acY9cv-l6jWX0"/>
+<span class="font-headline text-headline font-bold text-primary tracking-tight">SilverBrain</span>
+</div>
+<nav class="hidden md:flex gap-lg items-center ml-xl">
+<a class="font-body text-body-sm text-ink-subtle hover:text-on-surface transition-colors duration-200" href="#">Brain Dump</a>
+<a class="font-body text-body-sm text-primary border-b-2 border-primary pb-1" href="#">Sort</a>
+<a class="font-body text-body-sm text-ink-subtle hover:text-on-surface transition-colors duration-200" href="#">Focus</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-ink-subtle hover:bg-surface-2 p-xs rounded-lg transition-colors duration-200" onclick="document.documentElement.classList.toggle('dark')">dark_mode</button>
+<button class="material-symbols-outlined text-ink-subtle hover:bg-surface-2 p-xs rounded-lg transition-colors duration-200">settings</button>
+<button class="material-symbols-outlined text-ink-subtle hover:bg-surface-2 p-xs rounded-lg transition-colors duration-200">account_circle</button>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 w-full max-w-[1400px] mx-auto px-lg flex flex-col gap-xl min-h-screen matrix-container">
+<!-- Progress Header -->
+<div class="flex flex-col items-center text-center gap-xxs mb-md">
+<span class="font-eyebrow text-caption text-ink-subtle uppercase tracking-[0.2em]">Step 02 • Sorting</span>
+<h1 class="font-headline text-display-md">Organize your thoughts</h1>
+<p class="text-ink-subtle text-body-sm max-w-md">Categorize your captured items using the Eisenhower Matrix to focus on what truly matters.</p>
+</div>
+<div class="flex-1">
+<!-- Eisenhower Matrix -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter h-full min-h-[650px]">
+<!-- DO FIRST -->
+<div class="bg-surface-container-low/30 border border-hairline rounded-2xl p-xl flex flex-col gap-md transition-all duration-500 hover:border-eisenhower-do/30 group/quad">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-eyebrow text-caption text-eisenhower-do/60 uppercase tracking-widest">Do First</span>
+<span class="text-ink-subtle text-caption">Urgent &amp; Important</span>
+</div>
+<span class="material-symbols-outlined text-eisenhower-do/40">priority_high</span>
+</div>
+<div class="flex-1 rounded-xl border border-dashed border-hairline-strong/30 bg-surface-container-lowest/50 p-lg flex flex-col items-center justify-center text-ink-tertiary gap-sm">
+<span class="material-symbols-outlined text-display-md opacity-10">touch_app</span>
+<p class="font-body-sm italic">Drop high priority tasks here</p>
+</div>
+</div>
+<!-- SCHEDULE -->
+<div class="bg-surface-container-low/30 border border-hairline rounded-2xl p-xl flex flex-col gap-md transition-all duration-500 hover:border-eisenhower-schedule/30 group/quad">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-eyebrow text-caption text-eisenhower-schedule/60 uppercase tracking-widest">Schedule</span>
+<span class="text-ink-subtle text-caption">Important, Not Urgent</span>
+</div>
+<span class="material-symbols-outlined text-eisenhower-schedule/40">calendar_month</span>
+</div>
+<div class="flex-1 rounded-xl border border-dashed border-hairline-strong/30 bg-surface-container-lowest/50 p-lg flex flex-col items-center justify-center text-ink-tertiary gap-sm">
+<span class="material-symbols-outlined text-display-md opacity-10">event</span>
+<p class="font-body-sm italic">Drop long-term goals here</p>
+</div>
+</div>
+<!-- DELEGATE -->
+<div class="bg-surface-container-low/30 border border-hairline rounded-2xl p-xl flex flex-col gap-md transition-all duration-500 hover:border-eisenhower-delegate/30 group/quad">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-eyebrow text-caption text-eisenhower-delegate/60 uppercase tracking-widest">Delegate</span>
+<span class="text-ink-subtle text-caption">Urgent, Not Important</span>
+</div>
+<span class="material-symbols-outlined text-eisenhower-delegate/40">group</span>
+</div>
+<div class="flex-1 rounded-xl border border-dashed border-hairline-strong/30 bg-surface-container-lowest/50 p-lg flex flex-col items-center justify-center text-ink-tertiary gap-sm">
+<span class="material-symbols-outlined text-display-md opacity-10">person_add</span>
+<p class="font-body-sm italic">Drop tasks for others here</p>
+</div>
+</div>
+<!-- ELIMINATE -->
+<div class="bg-surface-container-low/30 border border-hairline rounded-2xl p-xl flex flex-col gap-md transition-all duration-500 hover:border-eisenhower-eliminate/30 group/quad">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-eyebrow text-caption text-eisenhower-eliminate/60 uppercase tracking-widest">Eliminate</span>
+<span class="text-ink-subtle text-caption">Neither Urgent nor Important</span>
+</div>
+<span class="material-symbols-outlined text-eisenhower-eliminate/40">delete</span>
+</div>
+<div class="flex-1 rounded-xl border border-dashed border-hairline-strong/30 bg-surface-container-lowest/50 p-lg flex flex-col items-center justify-center text-ink-tertiary gap-sm">
+<span class="material-symbols-outlined text-display-md opacity-10">layers_clear</span>
+<p class="font-body-sm italic">Drop distractions here</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Simplified Bottom Actions Bar -->
+<footer class="fixed bottom-0 left-0 right-0 z-[70] bg-surface-dim/80 backdrop-blur-md border-t border-hairline h-16">
+<div class="flex justify-between items-center w-full px-lg h-full max-w-[1400px] mx-auto">
+<button class="flex items-center gap-xs px-md py-xs rounded-lg text-ink-subtle hover:text-on-surface hover:bg-surface-2 transition-all font-button">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+            Back
+        </button>
+<div class="flex items-center gap-lg">
+<button class="text-ink-subtle hover:text-on-surface transition-all font-button flex items-center gap-xxs">
+<span class="material-symbols-outlined text-[18px]">file_download</span>
+                Export
+            </button>
+<div class="w-px h-6 bg-hairline"></div>
+<button class="bg-primary text-on-primary px-xl py-sm rounded-full font-button hover:bg-primary-hover active:scale-95 transition-all shadow-md">
+                Finish Sorting
+            </button>
+</div>
+</div>
+</footer>
+<script>
+    // Sidebar Toggle Logic
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    const sidebar = document.getElementById('sidebar-tasks');
+    const toggleIcon = document.getElementById('toggle-icon');
+    const mainContent = document.querySelector('.matrix-container');
+
+    toggleBtn.addEventListener('click', () => {
+        const isCollapsed = sidebar.classList.toggle('collapsed');
+        toggleIcon.textContent = isCollapsed ? 'chevron_right' : 'chevron_left';
+        toggleBtn.style.left = isCollapsed ? '0' : '320px';
+        mainContent.style.marginLeft = isCollapsed ? '0' : '320px';
+    });
+
+    // Drag and Drop Simulation
+    document.querySelectorAll('[draggable="true"]').forEach(card => {
+        card.addEventListener('dragstart', (e) => {
+            card.classList.add('drag-ghost');
+            e.dataTransfer.setData('text/plain', 'task');
+        });
+
+        card.addEventListener('dragend', () => {
+            card.classList.remove('drag-ghost');
+        });
+    });
+
+    // Quadrant Hover/Drop States
+    const quadrants = document.querySelectorAll('.group\\/quad');
+    quadrants.forEach(q => {
+        q.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            q.classList.add('bg-surface-container-high/40');
+            q.classList.add('border-primary/20');
+        });
+
+        q.addEventListener('dragleave', () => {
+            q.classList.remove('bg-surface-container-high/40');
+            q.classList.remove('border-primary/20');
+        });
+
+        q.addEventListener('drop', (e) => {
+            e.preventDefault();
+            q.classList.remove('bg-surface-container-high/40');
+            q.classList.remove('border-primary/20');
+            // Drop logic placeholder
+        });
+    });
+</script>
+</body></html>

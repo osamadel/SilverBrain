@@ -1,0 +1,22 @@
+[package]
+name = "silver-brain"
+version = "0.1.0"
+description = "Brain dump → Eisenhower Matrix → Todo + Pomodoro"
+authors = ["Osama Adel"]
+edition = "2021"
+
+# Library target consumed by main.rs and the mobile entry points.
+[lib]
+name = "silver_brain_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-fs = "2"
+tauri-plugin-http = "2"
+tauri-plugin-notification = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

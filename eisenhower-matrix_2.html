@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eisenhower Matrix</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f5f2eb; --surface: #faf8f3; --surface-hover: #f0ece0;
+  --ink: #1a1814; --ink-mid: #5a5650; --ink-faint: #a09a90;
+  --border: rgba(26,24,20,0.12); --border-strong: rgba(26,24,20,0.25);
+  --accent: #2d5a3d; --tag-bg: #ede9e0;
+  --q1: #f5ebe8; --q1-b: #c8705a; --q1-t: #7a3020;
+  --q2: #e8f0eb; --q2-b: #5a8c6a; --q2-t: #1e4a2e;
+  --q3: #faf3e0; --q3-b: #c8a84b; --q3-t: #6b4e10;
+  --q4: #eeeef5; --q4-b: #8080b0; --q4-t: #2a2a60;
+}
+html, body { height: 100%; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); font-size: 14px; line-height: 1.5; display: flex; flex-direction: column; }
+
+/* MODAL */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(26,24,20,0.45);
+  display: flex; align-items: center; justify-content: center; z-index: 200;
+}
+.modal-backdrop.hidden { display: none; }
+.modal {
+  background: var(--surface); border-radius: 12px; padding: 28px;
+  width: 420px; max-width: 90vw; display: flex; flex-direction: column; gap: 16px;
+  border: 0.5px solid var(--border-strong);
+}
+.modal h2 { font-family: 'Instrument Serif', serif; font-size: 20px; font-weight: 400; }
+.modal p { font-size: 13px; color: var(--ink-mid); line-height: 1.6; }
+.modal a { color: var(--accent); }
+.modal-field label { display: block; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mid); margin-bottom: 6px; font-weight: 500; }
+.modal-field input {
+  width: 100%; border: 0.5px solid var(--border-strong); border-radius: 8px;
+  padding: 10px 12px; font-family: 'DM Sans', sans-serif; font-size: 14px;
+  background: var(--bg); color: var(--ink); outline: none;
+}
+.modal-field input:focus { border-color: var(--accent); }
+.modal-note { font-size: 11px; color: var(--ink-faint); }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+/* HEADER */
+header {
+  padding: 18px 24px; border-bottom: 0.5px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface); position: sticky; top: 0; z-index: 10;
+}
+.header-left { display: flex; align-items: baseline; gap: 10px; }
+header h1 { font-family: 'Instrument Serif', serif; font-size: 22px; font-weight: 400; letter-spacing: -0.3px; }
+header .sub { font-size: 11px; color: var(--ink-mid); letter-spacing: 0.08em; text-transform: uppercase; }
+.api-key-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: transparent; border: 0.5px solid var(--border-strong); border-radius: 7px;
+  padding: 7px 12px; font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--ink-mid);
+  cursor: pointer; transition: background 0.15s, color 0.15s;
+}
+.api-key-btn:hover { background: var(--surface-hover); color: var(--ink); }
+.api-key-btn.configured { border-color: var(--accent); color: var(--accent); }
+.key-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+/* STEPS */
+.steps {
+  display: flex; gap: 0; padding: 0 24px; background: var(--surface);
+  border-bottom: 0.5px solid var(--border);
+}
+.step { display: flex; align-items: center; gap: 7px; padding: 9px 16px 9px 0; font-size: 12px; color: var(--ink-faint); transition: color 0.2s; }
+.step.active { color: var(--accent); }
+.step.done { color: var(--ink-mid); }
+.step-num { width: 18px; height: 18px; border-radius: 50%; border: 1px solid currentColor; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; flex-shrink: 0; }
+.step.active .step-num { background: var(--accent); color: #fff; border-color: var(--accent); }
+.step.done .step-num { background: var(--ink-mid); color: #fff; border-color: var(--ink-mid); }
+.step-sep { color: var(--ink-faint); padding: 9px 6px 9px 0; font-size: 11px; }
+
+/* MAIN LAYOUT */
+.main { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+
+/* LEFT COLUMN: dump + tasks stacked — scrolls internally */
+.left-col { width: 300px; min-width: 300px; border-right: 0.5px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+
+/* DUMP SECTION */
+.section { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.section-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mid); font-weight: 500; }
+.dump-textarea {
+  resize: vertical; min-height: 160px;
+  border: 0.5px solid var(--border-strong); border-radius: 8px; padding: 12px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; line-height: 1.7;
+  background: var(--bg); color: var(--ink); outline: none; transition: border-color 0.15s;
+}
+.dump-textarea:focus { border-color: var(--accent); }
+.dump-textarea::placeholder { color: var(--ink-faint); }
+.status-line { font-size: 12px; color: var(--ink-mid); min-height: 16px; display: flex; align-items: center; gap: 6px; }
+.spinner { width: 11px; height: 11px; border: 1.5px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+.spinner.visible { display: block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* TASKS LIST */
+.tasks-section { border-top: 0.5px solid var(--border); padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+.tasks-header { display: flex; align-items: center; justify-content: space-between; }
+.tasks-count { font-size: 11px; color: var(--ink-mid); background: var(--tag-bg); border-radius: 20px; padding: 2px 8px; }
+.tasks-list { display: flex; flex-direction: column; gap: 7px; }
+.task-item {
+  background: var(--surface); border: 0.5px solid var(--border); border-radius: 7px;
+  padding: 9px 28px 9px 10px; cursor: grab; font-size: 12px; line-height: 1.4; color: var(--ink);
+  transition: border-color 0.15s, opacity 0.15s; user-select: none; position: relative;
+}
+.task-item:hover { border-color: var(--border-strong); }
+.task-item.dragging { opacity: 0.4; cursor: grabbing; }
+.task-item.placed { opacity: 0.38; text-decoration: line-through; color: var(--ink-faint); pointer-events: none; }
+.task-drag-icon { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: var(--ink-faint); font-size: 11px; pointer-events: none; }
+.tasks-empty { color: var(--ink-faint); font-size: 12px; text-align: center; padding: 12px 0; line-height: 1.7; }
+
+/* RIGHT COLUMN: matrix — fills remaining space, no scroll */
+.matrix-col { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 10px; min-width: 0; overflow: hidden; }
+
+.matrix-axis-row { display: flex; padding-left: 26px; gap: 10px; }
+.axis-label { flex: 1; text-align: center; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+
+.matrix-row { display: flex; gap: 10px; align-items: stretch; flex: 1; min-height: 0; }
+.row-label { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; display: flex; align-items: center; white-space: nowrap; width: 16px; flex-shrink: 0; }
+
+.quadrant {
+  flex: 1; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 7px;
+  min-height: 0; transition: outline 0.1s; overflow-y: auto; min-width: 0;
+}
+.quadrant.drag-over { outline: 2px dashed currentColor; outline-offset: -3px; }
+.q1 { background: var(--q1); border: 1px solid var(--q1-b); }
+.q2 { background: var(--q2); border: 1px solid var(--q2-b); }
+.q3 { background: var(--q3); border: 1px solid var(--q3-b); }
+.q4 { background: var(--q4); border: 1px solid var(--q4-b); }
+
+.q-head { flex-shrink: 0; }
+.q-title { font-family: 'Instrument Serif', serif; font-size: 14px; font-weight: 400; }
+.q-sub { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; opacity: 0.6; font-weight: 500; margin-top: 1px; }
+.q1 .q-title { color: var(--q1-t); } .q1 .q-sub { color: var(--q1-t); }
+.q2 .q-title { color: var(--q2-t); } .q2 .q-sub { color: var(--q2-t); }
+.q3 .q-title { color: var(--q3-t); } .q3 .q-sub { color: var(--q3-t); }
+.q4 .q-title { color: var(--q4-t); } .q4 .q-sub { color: var(--q4-t); }
+
+.drop-hint { font-size: 11px; color: var(--ink-faint); text-align: center; padding: 12px 0; pointer-events: none; }
+.drop-hint.hidden { display: none; }
+.placed-task {
+  background: rgba(255,255,255,0.72); border-radius: 6px; padding: 6px 9px;
+  font-size: 12px; line-height: 1.35; display: flex; align-items: flex-start; gap: 5px;
+  cursor: grab; transition: opacity 0.15s; user-select: none;
+}
+.placed-task:hover { background: rgba(255,255,255,0.92); }
+.placed-task.dragging { opacity: 0.3; }
+.placed-task span { flex: 1; }
+.rm-btn { background: none; border: none; color: var(--ink-faint); cursor: pointer; font-size: 13px; line-height: 1; padding: 0; flex-shrink: 0; transition: color 0.12s; }
+.rm-btn:hover { color: var(--ink); }
+
+/* BUTTONS */
+.btn-primary {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  background: var(--accent); color: #fff; border: none; border-radius: 8px;
+  padding: 10px 18px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: opacity 0.15s, transform 0.1s; width: 100%;
+}
+.btn-primary:hover { opacity: 0.87; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.32; cursor: not-allowed; transform: none; }
+.btn-secondary {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  background: transparent; color: var(--ink-mid); border: 0.5px solid var(--border-strong); border-radius: 8px;
+  padding: 9px 18px; font-family: 'DM Sans', sans-serif; font-size: 13px;
+  cursor: pointer; transition: background 0.15s, color 0.15s; width: 100%;
+}
+.btn-secondary:hover { background: var(--surface-hover); color: var(--ink); }
+.btn-secondary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* BOTTOM BAR */
+.bottom-bar {
+  position: sticky; bottom: 0; background: var(--surface);
+  border-top: 0.5px solid var(--border); padding: 12px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.placed-info { font-size: 13px; color: var(--ink-mid); }
+.placed-info strong { color: var(--ink); font-weight: 500; }
+.gen-btn {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--ink); color: var(--surface); border: none; border-radius: 8px;
+  padding: 10px 20px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: opacity 0.15s, transform 0.1s; white-space: nowrap;
+}
+.gen-btn:hover { opacity: 0.82; }
+.gen-btn:active { transform: scale(0.98); }
+.gen-btn:disabled { opacity: 0.28; cursor: not-allowed; transform: none; }
+
+/* OUTPUT */
+.output-section { border-top: 0.5px solid var(--border-strong); padding: 20px 24px; background: var(--surface); display: none; flex-direction: column; gap: 12px; }
+.output-section.visible { display: flex; }
+.output-header { display: flex; align-items: center; justify-content: space-between; }
+.output-md {
+  font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6;
+  border: 0.5px solid var(--border); border-radius: 7px; padding: 12px;
+  background: var(--bg); color: var(--ink); resize: vertical; min-height: 200px; outline: none;
+  width: 100%;
+}
+.copy-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--ink); color: var(--surface); border: none; border-radius: 7px;
+  padding: 9px 16px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: opacity 0.15s;
+}
+.copy-btn:hover { opacity: 0.82; }
+.copy-btn.copied { background: var(--accent); }
+.close-out { background: none; border: none; color: var(--ink-faint); cursor: pointer; font-size: 17px; padding: 2px; transition: color 0.12s; }
+.close-out:hover { color: var(--ink); }
+
+/* NO KEY WARNING */
+.no-key-warning {
+  display: none; background: #faf3e0; border: 1px solid #c8a84b; border-radius: 8px;
+  padding: 10px 14px; font-size: 12px; color: var(--q3-t); align-items: center; gap: 8px;
+}
+.no-key-warning.visible { display: flex; }
+.no-key-warning button { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 12px; font-weight: 500; padding: 0; text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<!-- API KEY MODAL -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h2>Configure API key</h2>
+    <p>This tool calls Claude directly from your browser. You need an Anthropic API key — get one free at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.</p>
+    <p style="font-size:12px; color:var(--ink-faint);">Your key is stored only in memory for this session and never sent anywhere except Anthropic's API.</p>
+    <div class="modal-field">
+      <label>API key</label>
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" style="width:auto" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" style="width:auto" onclick="saveApiKey()">Save & continue</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="header-left">
+    <h1>Eisenhower Matrix</h1>
+    <span class="sub">Brain dump → Obsidian</span>
+  </div>
+  <button class="api-key-btn" id="apiKeyBtn" onclick="openModal()">
+    <span class="key-dot"></span>
+    <span id="apiKeyBtnLabel">Set API key</span>
+  </button>
+</header>
+
+<div class="steps">
+  <div class="step active" id="step1"><span class="step-num">1</span> Brain dump</div>
+  <span class="step-sep">›</span>
+  <div class="step" id="step2"><span class="step-num">2</span> Drag &amp; sort</div>
+  <span class="step-sep">›</span>
+  <div class="step" id="step3"><span class="step-num">3</span> Export</div>
+</div>
+
+<div class="main">
+  <!-- LEFT COLUMN -->
+  <div class="left-col">
+    <div class="section">
+      <div class="section-label">Your brain dump</div>
+      <textarea class="dump-textarea" id="dumpInput" placeholder="Write anything — messy thoughts, a rough list, half-formed ideas...&#10;&#10;E.g. Call Sarah back, finish Q3 report urgently, maybe learn guitar, pay rent by Friday, fix the bug in prod..."></textarea>
+      <div class="no-key-warning" id="noKeyWarning">
+        <span>⚠ No API key set.</span>
+        <button onclick="openModal()">Add key</button>
+      </div>
+      <div class="status-line">
+        <div class="spinner" id="spinner"></div>
+        <span id="statusText"></span>
+      </div>
+      <button class="btn-primary" id="extractBtn" onclick="extractTasks()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M22 2 12 12"/><path d="m17 2 5 0 0 5"/></svg>
+        Extract tasks with Claude
+      </button>
+      <button class="btn-secondary" id="resetBtn" onclick="resetAll()" style="display:none">Reset everything</button>
+    </div>
+
+    <div class="tasks-section" id="tasksSection">
+      <div class="tasks-header">
+        <div class="section-label">Tasks</div>
+        <span class="tasks-count" id="tasksCount" style="display:none">0</span>
+      </div>
+      <div class="tasks-list" id="tasksList">
+        <div class="tasks-empty">Extract tasks first, then<br>drag them into the matrix →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: MATRIX -->
+  <div class="matrix-col">
+    <div class="matrix-axis-row">
+      <div class="axis-label">Urgent</div>
+      <div class="axis-label">Not urgent</div>
+    </div>
+
+    <div class="matrix-row">
+      <div class="row-label">Important</div>
+      <div class="quadrant q1" id="q1" ondragover="onDragOver(event,'q1')" ondragleave="onDragLeave('q1')" ondrop="onDrop(event,'q1')">
+        <div class="q-head">
+          <div class="q-title">Do first</div>
+          <div class="q-sub">Urgent · Important</div>
+        </div>
+        <div class="drop-hint" id="hint-q1">Drop tasks here</div>
+      </div>
+      <div class="quadrant q2" id="q2" ondragover="onDragOver(event,'q2')" ondragleave="onDragLeave('q2')" ondrop="onDrop(event,'q2')">
+        <div class="q-head">
+          <div class="q-title">Schedule</div>
+          <div class="q-sub">Not urgent · Important</div>
+        </div>
+        <div class="drop-hint" id="hint-q2">Drop tasks here</div>
+      </div>
+    </div>
+
+    <div class="matrix-row">
+      <div class="row-label">Not important</div>
+      <div class="quadrant q3" id="q3" ondragover="onDragOver(event,'q3')" ondragleave="onDragLeave('q3')" ondrop="onDrop(event,'q3')">
+        <div class="q-head">
+          <div class="q-title">Delegate</div>
+          <div class="q-sub">Urgent · Not important</div>
+        </div>
+        <div class="drop-hint" id="hint-q3">Drop tasks here</div>
+      </div>
+      <div class="quadrant q4" id="q4" ondragover="onDragOver(event,'q4')" ondragleave="onDragLeave('q4')" ondrop="onDrop(event,'q4')">
+        <div class="q-head">
+          <div class="q-title">Eliminate</div>
+          <div class="q-sub">Not urgent · Not important</div>
+        </div>
+        <div class="drop-hint" id="hint-q4">Drop tasks here</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <div class="placed-info" id="placedInfo">Place tasks in the matrix to enable export</div>
+  <button class="gen-btn" id="generateBtn" disabled onclick="generateMarkdown()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Generate Obsidian markdown
+  </button>
+</div>
+
+<!-- OUTPUT -->
+<div class="output-section" id="outputSection">
+  <div class="output-header">
+    <div class="section-label">Obsidian markdown</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="copy-btn" id="copyBtn" onclick="copyMarkdown()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy
+      </button>
+      <button class="close-out" onclick="closeOutput()">✕</button>
+    </div>
+  </div>
+  <textarea class="output-md" id="outputMd" readonly></textarea>
+</div>
+
+<script>
+let apiKey = '';
+let tasks = [];
+let matrixData = { q1: [], q2: [], q3: [], q4: [] };
+let draggingTask = null;
+let draggingFrom = null;
+
+function openModal() { document.getElementById('modalBackdrop').classList.remove('hidden'); }
+function closeModal() { document.getElementById('modalBackdrop').classList.add('hidden'); }
+function saveApiKey() {
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if (!val) return;
+  apiKey = val;
+  document.getElementById('apiKeyBtn').classList.add('configured');
+  document.getElementById('apiKeyBtnLabel').textContent = 'API key set ✓';
+  document.getElementById('noKeyWarning').classList.remove('visible');
+  closeModal();
+}
+
+document.getElementById('modalBackdrop').addEventListener('click', function(e) {
+  if (e.target === this && apiKey) closeModal();
+});
+document.getElementById('apiKeyInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveApiKey(); });
+
+async function extractTasks() {
+  if (!apiKey) {
+    document.getElementById('noKeyWarning').classList.add('visible');
+    openModal();
+    return;
+  }
+  const input = document.getElementById('dumpInput').value.trim();
+  if (!input) { document.getElementById('statusText').textContent = 'Please write something first.'; return; }
+
+  const btn = document.getElementById('extractBtn');
+  const spinner = document.getElementById('spinner');
+  const statusText = document.getElementById('statusText');
+  btn.disabled = true; spinner.classList.add('visible'); statusText.textContent = 'Extracting tasks...';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514', max_tokens: 1000,
+        messages: [{ role: 'user', content: `You are a task extraction assistant. From the brain dump below, extract every actionable task and return them as a clean JSON array of strings.
+
+Rules:
+- Fix all spelling and grammar mistakes in the task text
+- Merge duplicates and near-duplicates into one task (e.g. "call John" and "ring John" → keep one)
+- Write each task as a clear, actionable phrase starting with a verb (max ~8 words)
+- Discard vague non-tasks, filler words, or pure fluff (e.g. "I don't know", "maybe someday")
+- Preserve the intent of every real task — don't drop anything actionable
+- Return ONLY a raw JSON array of strings. No preamble, no markdown fences, no explanation.
+
+Brain dump:
+"""
+${input}
+"""` }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const raw = data.content?.[0]?.text || '[]';
+    tasks = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    renderTasks(); updateSteps(2);
+    document.getElementById('resetBtn').style.display = 'flex';
+    statusText.textContent = `${tasks.length} task${tasks.length !== 1 ? 's' : ''} extracted`;
+  } catch(e) {
+    statusText.textContent = 'Error: ' + (e.message || 'check your API key');
+    console.error(e);
+  } finally { spinner.classList.remove('visible'); btn.disabled = false; }
+}
+
+function renderTasks() {
+  const list = document.getElementById('tasksList');
+  const count = document.getElementById('tasksCount');
+  if (!tasks.length) { list.innerHTML = '<div class="tasks-empty">No tasks found</div>'; count.style.display = 'none'; return; }
+  count.style.display = 'inline-block'; count.textContent = tasks.length;
+  list.innerHTML = '';
+  const placed = Object.values(matrixData).flat();
+  tasks.forEach(task => {
+    const isPlaced = placed.includes(task);
+    const el = document.createElement('div');
+    el.className = 'task-item' + (isPlaced ? ' placed' : '');
+    el.draggable = !isPlaced; el.textContent = task; el.dataset.task = task;
+    const icon = document.createElement('span'); icon.className = 'task-drag-icon'; icon.textContent = '⠿'; el.appendChild(icon);
+    if (!isPlaced) {
+      el.addEventListener('dragstart', e => { draggingTask = task; draggingFrom = null; el.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+      el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    }
+    list.appendChild(el);
+  });
+}
+
+function onDragOver(e, q) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; document.getElementById(q).classList.add('drag-over'); }
+function onDragLeave(q) { document.getElementById(q).classList.remove('drag-over'); }
+function onDrop(e, q) {
+  e.preventDefault(); document.getElementById(q).classList.remove('drag-over');
+  if (!draggingTask) return;
+  if (draggingFrom && draggingFrom !== q) matrixData[draggingFrom] = matrixData[draggingFrom].filter(t => t !== draggingTask);
+  if (!matrixData[q].includes(draggingTask)) matrixData[q].push(draggingTask);
+  draggingTask = null; draggingFrom = null;
+  renderTasks(); renderMatrix(); updateGenerateBtn();
+}
+
+function renderMatrix() {
+  ['q1','q2','q3','q4'].forEach(q => {
+    const container = document.getElementById(q);
+    container.querySelectorAll('.placed-task').forEach(el => el.remove());
+    const hint = document.getElementById('hint-' + q);
+    if (!matrixData[q].length) { hint.classList.remove('hidden'); return; }
+    hint.classList.add('hidden');
+    matrixData[q].forEach(task => {
+      const el = document.createElement('div'); el.className = 'placed-task'; el.draggable = true; el.dataset.task = task;
+      const txt = document.createElement('span'); txt.textContent = task; el.appendChild(txt);
+      const rm = document.createElement('button'); rm.className = 'rm-btn'; rm.textContent = '×'; rm.title = 'Return to list';
+      rm.onclick = ev => { ev.stopPropagation(); matrixData[q] = matrixData[q].filter(t => t !== task); renderTasks(); renderMatrix(); updateGenerateBtn(); };
+      el.appendChild(rm);
+      el.addEventListener('dragstart', e => {
+        draggingTask = task; draggingFrom = q; el.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move';
+        matrixData[q] = matrixData[q].filter(t => t !== task);
+        setTimeout(() => { renderTasks(); renderMatrix(); }, 0);
+      });
+      el.addEventListener('dragend', () => { el.classList.remove('dragging'); draggingTask = null; draggingFrom = null; });
+      container.appendChild(el);
+    });
+  });
+}
+
+function updateGenerateBtn() {
+  const total = Object.values(matrixData).flat().length;
+  document.getElementById('generateBtn').disabled = total === 0;
+  document.getElementById('placedInfo').innerHTML = total === 0 ? 'Place tasks in the matrix to enable export' : `<strong>${total}</strong> task${total !== 1 ? 's' : ''} placed`;
+  if (total > 0) updateSteps(3);
+}
+
+function generateMarkdown() {
+  const today = new Date().toISOString().split('T')[0];
+  let md = `# Eisenhower Matrix — ${today}\n\n> Organized using the Eisenhower decision matrix\n\n---\n\n`;
+  [
+    { key:'q1', emoji:'🔴', title:'Do First', sub:'Urgent + Important' },
+    { key:'q2', emoji:'🟢', title:'Schedule', sub:'Not Urgent + Important' },
+    { key:'q3', emoji:'🟡', title:'Delegate', sub:'Urgent + Not Important' },
+    { key:'q4', emoji:'⚫', title:'Eliminate', sub:'Not Urgent + Not Important' }
+  ].forEach(q => {
+    md += `## ${q.emoji} ${q.title}\n*${q.sub}*\n\n`;
+    if (matrixData[q.key].length) matrixData[q.key].forEach(t => { md += `- [ ] ${t}\n`; });
+    else md += `- *(none)*\n`;
+    md += '\n';
+  });
+  md += `---\n*Generated with Eisenhower Matrix tool*`;
+  document.getElementById('outputMd').value = md;
+  document.getElementById('outputSection').classList.add('visible');
+  document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+function closeOutput() { document.getElementById('outputSection').classList.remove('visible'); }
+
+function copyMarkdown() {
+  navigator.clipboard.writeText(document.getElementById('outputMd').value).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Copied!'; btn.classList.add('copied');
+    setTimeout(() => { btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy`; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function resetAll() {
+  tasks = []; matrixData = { q1:[], q2:[], q3:[], q4:[] };
+  document.getElementById('dumpInput').value = '';
+  document.getElementById('statusText').textContent = '';
+  document.getElementById('resetBtn').style.display = 'none';
+  document.getElementById('tasksCount').style.display = 'none';
+  document.getElementById('tasksList').innerHTML = '<div class="tasks-empty">Extract tasks first, then<br>drag them into the matrix →</div>';
+  renderMatrix(); updateGenerateBtn(); closeOutput(); updateSteps(1);
+}
+
+function updateSteps(active) {
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById('step' + i);
+    el.classList.remove('active','done');
+    if (i < active) el.classList.add('done');
+    else if (i === active) el.classList.add('active');
+  }
+}
+</script>
+</body>
+</html>

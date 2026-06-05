@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SilverBrain - Focus Timer</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Geist+Sans:wght@600;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Config from Source of Truth -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "hairline-strong": "#36393f",
+                    "secondary-fixed-dim": "#c5c7c7",
+                    "primary-container": "#5e6ad2",
+                    "eisenhower-delegate": "#27a644",
+                    "ink-subtle": "#8a8f98",
+                    "inverse-primary": "#4854bb",
+                    "on-error-container": "#ffdad6",
+                    "on-error": "#690005",
+                    "hairline": "#23252a",
+                    "secondary-container": "#47494a",
+                    "surface-variant": "#353438",
+                    "outline": "#908f9e",
+                    "on-primary-fixed-variant": "#2e3aa2",
+                    "eisenhower-do": "#ff4d4d",
+                    "on-secondary-fixed-variant": "#454747",
+                    "surface-container-low": "#1c1b1f",
+                    "ink-tertiary": "#62666d",
+                    "primary-fixed": "#dfe0ff",
+                    "surface-bright": "#39393c",
+                    "outline-variant": "#454652",
+                    "on-secondary-fixed": "#191c1c",
+                    "surface-container-high": "#2a292d",
+                    "primary-hover": "#828fff",
+                    "eisenhower-eliminate": "#62666d",
+                    "surface-2": "#23252a",
+                    "surface-3": "#2c2e35",
+                    "surface-container": "#201f23",
+                    "tertiary-fixed": "#ffddbb",
+                    "ink-muted": "#d0d6e0",
+                    "on-surface-variant": "#c6c5d5",
+                    "on-tertiary-fixed-variant": "#673d00",
+                    "surface-dim": "#131316",
+                    "on-primary": "#121f8b",
+                    "secondary": "#c5c7c7",
+                    "on-primary-container": "#fdfaff",
+                    "primary": "#bdc2ff",
+                    "eisenhower-schedule": "#4d79ff",
+                    "error": "#ffb4ab",
+                    "surface-1": "#16171b",
+                    "surface-container-highest": "#353438",
+                    "error-container": "#93000a",
+                    "tertiary-fixed-dim": "#ffb867",
+                    "on-tertiary-fixed": "#2b1700",
+                    "surface-container-lowest": "#0e0e11",
+                    "on-primary-fixed": "#000965",
+                    "surface": "#131316",
+                    "surface-tint": "#bdc2ff",
+                    "on-background": "#e5e1e6",
+                    "secondary-fixed": "#e1e3e3",
+                    "tertiary": "#ffb867",
+                    "on-tertiary-container": "#fffaf8",
+                    "primary-focus": "#5e69d1",
+                    "surface-4": "#3c3f4a",
+                    "background": "#131316",
+                    "tertiary-container": "#a56500",
+                    "on-secondary": "#2e3131",
+                    "inverse-on-surface": "#313034",
+                    "inverse-surface": "#e5e1e6",
+                    "primary-fixed-dim": "#bdc2ff",
+                    "on-tertiary": "#482900",
+                    "on-secondary-container": "#b7b9b9",
+                    "on-surface": "#e5e1e6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "12px",
+                    "md": "16px",
+                    "xs": "8px",
+                    "lg": "24px",
+                    "xxl": "48px",
+                    "base": "4px",
+                    "xxs": "4px",
+                    "section": "96px",
+                    "xl": "32px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "mono": ["JetBrains Mono"],
+                    "headline": ["Geist Sans"],
+                    "subhead": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "button": ["Inter"],
+                    "display-md": ["Geist Sans"],
+                    "eyebrow": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "card-title": ["Inter"],
+                    "display-xl": ["Geist Sans"],
+                    "caption": ["Inter"],
+                    "body": ["Inter"],
+                    "display-lg": ["Geist Sans"]
+            },
+            "fontSize": {
+                    "mono": ["13px", {"lineHeight": "1.50", "letterSpacing": "0", "fontWeight": "400"}],
+                    "headline": ["28px", {"lineHeight": "1.20", "letterSpacing": "-0.6px", "fontWeight": "600"}],
+                    "subhead": ["20px", {"lineHeight": "1.40", "letterSpacing": "-0.2px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "1.50", "letterSpacing": "-0.1px", "fontWeight": "400"}],
+                    "button": ["14px", {"lineHeight": "1.20", "letterSpacing": "0", "fontWeight": "500"}],
+                    "display-md": ["40px", {"lineHeight": "1.15", "letterSpacing": "-1.0px", "fontWeight": "600"}],
+                    "eyebrow": ["13px", {"lineHeight": "1.30", "letterSpacing": "0.4px", "fontWeight": "500"}],
+                    "body-sm": ["14px", {"lineHeight": "1.50", "letterSpacing": "0", "fontWeight": "400"}],
+                    "card-title": ["22px", {"lineHeight": "1.25", "letterSpacing": "-0.4px", "fontWeight": "500"}],
+                    "display-xl": ["80px", {"lineHeight": "1.05", "letterSpacing": "-3.0px", "fontWeight": "600"}],
+                    "caption": ["12px", {"lineHeight": "1.40", "letterSpacing": "0", "fontWeight": "400"}],
+                    "body": ["16px", {"lineHeight": "1.50", "letterSpacing": "-0.05px", "fontWeight": "400"}],
+                    "display-lg": ["56px", {"lineHeight": "1.10", "letterSpacing": "-1.8px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #010102; /* Canvas Level 0 */
+            color: #e5e1e6;
+        }
+        .light body {
+            background-color: #fdfbff;
+            color: #1c1b1f;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-timer-border {
+            animation: pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(94, 105, 209, 0.3); }
+            50% { border-color: rgba(94, 105, 209, 0.8); }
+        }
+    </style>
+</head>
+<body class="font-body text-body selection:bg-primary-container selection:text-white transition-colors duration-300">
+<!-- Shell: TopNavBar -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-surface-1 dark:bg-surface-1 border-b border-hairline dark:border-hairline h-16 transition-colors duration-300">
+<div class="flex justify-between items-center w-full px-lg h-full max-w-[1280px] mx-auto">
+<div class="flex items-center gap-sm">
+<img alt="SilverBrain Logo" class="w-8 h-8 rounded-lg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJIL9y81LDi1buUYzGKUQfMOmv4FB-fCbE63NDXTvP2kYXTgUPqPQ6x4OBgRiLLfnL8ZVzbCi7QNcDjuky_ywiEYR4ilEfFXbGWIqQ_88I3Fa-p8eFA58w2u3AaHcU3JGMI3PRLZk553xqJ26EeylMGvjRRKWxzPanA2Ja_qIWXWl0lei66jY_DZb4MWpIaSTlzL-JVX66iL3n-fZb7g29MVUckFVdhgfRy7hAQOfE0mxEND2gSe2E4S9AiuiYt5acY9cv-l6jWX0"/>
+<div class="font-headline text-headline font-bold text-primary dark:text-primary">SilverBrain</div>
+</div>
+<nav class="hidden md:flex items-center gap-xl">
+<a class="text-ink-subtle dark:text-ink-subtle hover:text-on-surface dark:hover:text-on-surface transition-colors duration-200 font-button text-button" href="#">Brain Dump</a>
+<a class="text-ink-subtle dark:text-ink-subtle hover:text-on-surface dark:hover:text-on-surface transition-colors duration-200 font-button text-button" href="#">Sort</a>
+<a class="text-primary dark:text-primary border-b-2 border-primary dark:border-primary pb-1 font-button text-button" href="#">Focus</a>
+</nav>
+<div class="flex items-center gap-md text-ink-subtle">
+<button class="hover:bg-surface-2 dark:hover:bg-surface-2 p-xs rounded-lg transition-colors duration-200" id="theme-toggle">
+<span class="material-symbols-outlined">contrast</span>
+</button>
+<button class="hover:bg-surface-2 dark:hover:bg-surface-2 p-xs rounded-lg transition-colors duration-200">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="hover:bg-surface-2 dark:hover:bg-surface-2 p-xs rounded-lg transition-colors duration-200">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<div class="flex min-h-screen pt-16">
+<!-- Shell: SideNavBar -->
+<aside class="hidden lg:flex flex-col h-[calc(100vh-64px)] w-64 fixed left-0 bg-surface-1 dark:bg-surface-1 border-r border-hairline dark:border-hairline py-lg gap-md px-md transition-colors duration-300">
+<div class="mb-lg">
+<h3 class="font-card-title text-card-title text-on-surface px-xs">Current Focus</h3>
+<p class="font-button text-button text-ink-subtle px-xs">Deep Work Session</p>
+</div>
+<nav class="flex flex-col gap-xs flex-1">
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-ink-subtle dark:text-ink-subtle hover:bg-surface-2 dark:hover:bg-surface-2 hover:text-on-surface dark:hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-button text-button">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-ink-subtle dark:text-ink-subtle hover:bg-surface-2 dark:hover:bg-surface-2 hover:text-on-surface dark:hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">checklist</span>
+<span class="font-button text-button">Tasks</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-ink-subtle dark:text-ink-subtle hover:bg-surface-2 dark:hover:bg-surface-2 hover:text-on-surface dark:hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-button text-button">Eisenhower</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg bg-surface-2 dark:bg-surface-2 text-primary dark:text-primary border-l-4 border-primary dark:border-primary translate-x-1 transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">bar_chart</span>
+<span class="font-button text-button">Analytics</span>
+</a>
+</nav>
+<button class="mt-auto bg-surface-3 text-ink-muted py-sm px-md rounded-lg font-button text-button hover:bg-surface-4 transition-colors">
+            Start Timer
+        </button>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 lg:ml-64 flex flex-col items-center justify-center px-lg py-xl">
+<div class="max-w-[1280px] w-full flex flex-col items-center">
+<!-- Focus State Switcher -->
+<div class="flex items-center gap-md mb-xl p-xs bg-surface-1 border border-hairline rounded-full">
+<button class="px-md py-xs rounded-full bg-surface-2 text-primary font-button text-button transition-all" id="focus-tab">Focus</button>
+<button class="px-md py-xs rounded-full text-ink-subtle hover:text-on-surface font-button text-button transition-all" id="short-break-tab">Short Break</button>
+<button class="px-md py-xs rounded-full text-ink-subtle hover:text-on-surface font-button text-button transition-all" id="long-break-tab">Long Break</button>
+</div>
+<!-- Central Timer Section -->
+<section class="relative group" id="timer-container">
+<div class="w-[480px] h-[480px] flex flex-col items-center justify-center bg-surface-1 dark:bg-surface-container border border-hairline rounded-full active-timer-border transition-all duration-700 shadow-2xl shadow-primary-focus/5 scale-100 group-hover:scale-[1.01]">
+<!-- Visual Ring -->
+<div class="absolute inset-0 rounded-full border border-hairline-strong pointer-events-none opacity-50"></div>
+<!-- Current Task Context -->
+<div class="flex flex-col items-center mb-md">
+<span class="font-eyebrow text-eyebrow text-primary uppercase tracking-[0.2em]">Focus Mode</span>
+</div>
+<!-- Time Readout -->
+<div class="font-mono text-[112px] leading-none text-on-surface font-medium tracking-tighter" id="time-display">
+                        25:00
+                    </div>
+<!-- Controls -->
+<div class="flex items-center gap-lg mt-xl">
+<button class="flex items-center justify-center w-12 h-12 rounded-full border border-hairline bg-surface-1 text-ink-subtle hover:bg-surface-2 hover:text-on-surface transition-colors" id="reset-btn">
+<span class="material-symbols-outlined">restart_alt</span>
+</button>
+<button class="flex items-center justify-center w-20 h-20 rounded-full bg-surface-3 text-on-surface hover:bg-surface-4 active:scale-95 transition-all shadow-lg border border-hairline" id="start-pause-btn">
+<span class="material-symbols-outlined text-[32px]" id="play-icon">play_arrow</span>
+</button>
+<button class="flex items-center justify-center w-12 h-12 rounded-full border border-hairline bg-surface-1 text-ink-subtle hover:bg-surface-2 hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined">skip_next</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Active Task Info -->
+<div class="mt-xl flex flex-col items-center gap-xs">
+<span class="font-eyebrow text-eyebrow text-ink-tertiary">CURRENTLY WORKING ON</span>
+<div class="flex items-center gap-sm bg-surface-1 border border-hairline-strong px-lg py-md rounded-xl max-w-md">
+<span class="w-2 h-8 bg-eisenhower-do rounded-full"></span>
+<div class="flex flex-col">
+<h4 class="font-body-lg text-body-lg text-on-surface">Redesign high-fidelity dashboard components</h4>
+<p class="font-caption text-caption text-ink-subtle">Product Design • Project Zenith</p>
+</div>
+<button class="ml-auto text-ink-tertiary hover:text-primary transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</div>
+<!-- Stats Toggle -->
+<div class="mt-xl">
+<button class="flex items-center gap-xs text-ink-tertiary hover:text-primary transition-colors font-button text-button group" id="toggle-stats-btn">
+<span class="material-symbols-outlined text-[18px]">analytics</span>
+<span>Show Daily Stats</span>
+<span class="material-symbols-outlined text-[18px] transition-transform duration-200" id="stats-chevron">expand_more</span>
+</button>
+</div>
+<!-- Daily Stats Preview (Hidden by default) -->
+<div class="hidden mt-lg grid grid-cols-1 md:grid-cols-3 gap-gutter w-full max-w-[800px] animate-in fade-in slide-in-from-top-4 duration-300" id="stats-container">
+<div class="bg-surface-1 border border-hairline p-lg rounded-lg flex flex-col items-center gap-xs hover:bg-surface-2 transition-colors">
+<span class="font-eyebrow text-eyebrow text-ink-subtle uppercase">Daily Target</span>
+<div class="font-display-md text-display-md text-on-surface">6/8</div>
+<span class="font-caption text-caption text-ink-tertiary">Cycles completed</span>
+</div>
+<div class="bg-surface-1 border border-hairline p-lg rounded-lg flex flex-col items-center gap-xs hover:bg-surface-2 transition-colors">
+<span class="font-eyebrow text-eyebrow text-ink-subtle uppercase">Focus Time</span>
+<div class="font-display-md text-display-md text-on-surface">2.5h</div>
+<span class="font-caption text-caption text-ink-tertiary">Total productive time</span>
+</div>
+<div class="bg-surface-1 border border-hairline p-lg rounded-lg flex flex-col items-center gap-xs hover:bg-surface-2 transition-colors">
+<span class="font-eyebrow text-eyebrow text-ink-subtle uppercase">Streak</span>
+<div class="font-display-md text-display-md text-on-surface">12</div>
+<span class="font-caption text-caption text-ink-tertiary">Day record</span>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Script for Timer Interaction -->
+<script>
+    let timeLeft = 25 * 60;
+    let timerId = null;
+    let isRunning = false;
+
+    const timeDisplay = document.getElementById('time-display');
+    const startPauseBtn = document.getElementById('start-pause-btn');
+    const playIcon = document.getElementById('play-icon');
+    const resetBtn = document.getElementById('reset-btn');
+    const timerContainer = document.getElementById('timer-container').children[0];
+    const statsBtn = document.getElementById('toggle-stats-btn');
+    const statsContainer = document.getElementById('stats-container');
+    const statsChevron = document.getElementById('stats-chevron');
+    const themeToggle = document.getElementById('theme-toggle');
+
+    function updateDisplay() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function toggleTimer() {
+        if (isRunning) {
+            clearInterval(timerId);
+            playIcon.textContent = 'play_arrow';
+            timerContainer.classList.remove('active-timer-border');
+        } else {
+            timerId = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateDisplay();
+                } else {
+                    clearInterval(timerId);
+                    alert('Focus session complete!');
+                }
+            }, 1000);
+            playIcon.textContent = 'pause';
+            timerContainer.classList.add('active-timer-border');
+        }
+        isRunning = !isRunning;
+    }
+
+    function resetTimer() {
+        clearInterval(timerId);
+        isRunning = false;
+        timeLeft = (document.querySelector('.bg-surface-2.text-primary').id === 'focus-tab') ? 25 * 60 : 
+                   (document.querySelector('.bg-surface-2.text-primary').id === 'short-break-tab' ? 5 * 60 : 15 * 60);
+        updateDisplay();
+        playIcon.textContent = 'play_arrow';
+        timerContainer.classList.remove('active-timer-border');
+    }
+
+    startPauseBtn.addEventListener('click', toggleTimer);
+    resetBtn.addEventListener('click', resetTimer);
+
+    // Stats Toggle
+    statsBtn.addEventListener('click', () => {
+        const isHidden = statsContainer.classList.contains('hidden');
+        if (isHidden) {
+            statsContainer.classList.remove('hidden');
+            statsChevron.style.transform = 'rotate(180deg)';
+            statsBtn.querySelector('span:nth-child(2)').textContent = 'Hide Daily Stats';
+        } else {
+            statsContainer.classList.add('hidden');
+            statsChevron.style.transform = 'rotate(0deg)';
+            statsBtn.querySelector('span:nth-child(2)').textContent = 'Show Daily Stats';
+        }
+    });
+
+    // Theme Toggle
+    themeToggle.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        document.documentElement.classList.toggle('light');
+    });
+
+    // Tab Switching
+    const tabs = ['focus-tab', 'short-break-tab', 'long-break-tab'];
+    tabs.forEach(tabId => {
+        document.getElementById(tabId).addEventListener('click', (e) => {
+            tabs.forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove('bg-surface-2', 'text-primary');
+                el.classList.add('text-ink-subtle');
+            });
+            e.target.classList.add('bg-surface-2', 'text-primary');
+            e.target.classList.remove('text-ink-subtle');
+            
+            if (tabId === 'focus-tab') timeLeft = 25 * 60;
+            if (tabId === 'short-break-tab') timeLeft = 5 * 60;
+            if (tabId === 'long-break-tab') timeLeft = 15 * 60;
+            resetTimer();
+        });
+    });
+
+    updateDisplay();
+</script>
+</body></html>
