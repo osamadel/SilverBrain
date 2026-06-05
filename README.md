@@ -1,11 +1,9 @@
-# SilverBrain · فضّي دماغك
+# SilverBrain
 
 A cross-platform desktop productivity app that takes a messy **brain dump**, uses
-an LLM to extract clean tasks, lets you sort them on an **Eisenhower Matrix**, and
-carries them into a **Todo** list and a **Pomodoro** timer.
-
-The name is a pun: in Egyptian Arabic *"فضّي دماغك"* means *"dump your brain"* —
-and *فضّي* can also mean *silver*.
+an LLM to extract and pre-sort tasks, lets you refine them on an **Eisenhower
+Matrix**, carries them into a **Tasks** checklist, and runs a **Focus**
+(Pomodoro) timer.
 
 Built with [Tauri 2](https://tauri.app) (Rust + WebView), a vanilla
 TypeScript/Vite frontend, and [LangChain.js](https://js.langchain.com) for
@@ -13,26 +11,79 @@ multi-provider LLM support.
 
 ## Features
 
-- **Brain dump → tasks** — paste freeform thoughts, get a clean, de-duplicated,
-  verb-first task list extracted by your chosen LLM.
-- **Eisenhower Matrix** — drag tasks into *Do First / Schedule / Delegate /
-  Eliminate*; export to Markdown (Obsidian-friendly) or push into the Todo list.
-- **Todo** — persistent checklist with quadrant badges; send any item to the
-  Pomodoro timer.
-- **Pomodoro** — focus / short / long break cycles with configurable durations
-  and an automatic long-break interval.
-- **Multiple LLM providers** — Anthropic (Claude), OpenAI, Google Gemini, and
-  local Ollama. Switch in Settings.
-- **Local config file** — your provider choice, model, and API keys are stored
-  in a plain JSON config file on your machine (never bundled, never uploaded
-  anywhere except the provider you call).
+### Workflow
+
+- **Brain Dump** — a focused, distraction-free canvas for freeform capture.
+  Press **⌘/Ctrl+Enter** (or click Extract) to run extraction; the app creates
+  a titled session and navigates to Sort.
+- **Sort** — unsorted tasks in a left column; drag them into the Eisenhower
+  Matrix (*Do First / Schedule / Delegate / Eliminate*). Export to Markdown
+  (Obsidian-friendly) or finish sorting to move on to Tasks.
+- **Tasks** — persistent checklist grouped by quadrant, with done-state and
+  quadrant badges; send any item to the Focus timer.
+- **Focus** — Pomodoro cycles (focus / short / long break) with configurable
+  durations and an automatic long-break interval.
+
+### Sessions & history
+
+Each extraction creates a **brain-dump session** (LLM-generated title, summary,
+dump text, and unified task list). Past sessions are listed in a history dialog
+and can be restored at any time. Legacy `data.json` files are migrated
+automatically on first load.
+
+### Sort memory
+
+The app learns how you sort work over time. On extraction, the LLM pre-places
+tasks using your custom prompt plus any learned preferences stored in
+`memory.md`. When you finish sorting, a background learning pass compares the
+model's suggestions to your final placements and rewrites `memory.md` — later
+extractions get smarter.
+
+### LLM providers
+
+Anthropic (Claude), OpenAI, Google Gemini, and local Ollama. Switch provider,
+model, and API keys in Settings. The task-extraction prompt is viewable,
+editable, and resettable there too.
+
+### Native shell (macOS)
+
+Overlay title bar with real traffic-light controls; collapsible left sidebar
+(logo, vertical nav, settings pinned at the bottom). The sidebar auto-collapses
+on the Brain Dump page for a calm, isolated capture experience.
+
+### Internationalization
+
+Full **English / Arabic (Egyptian)** UI switch in Settings. Arabic mode applies
+RTL layout, Noto Sans Arabic, and the title *فضي دماغك*.
+
+### Keyboard shortcuts
+
+Press **⌘/Ctrl+/** in the app to open the shortcuts panel. Highlights:
+
+| Shortcut | Action |
+| -------- | ------ |
+| ⌘/Ctrl+Enter | Extract (Brain Dump) · Finish Sorting (Sort) · Focus first task (Tasks) |
+| ⌘/Ctrl+, | Open Settings |
+| ⌘/Ctrl+B | Toggle sidebar |
+| ⌘/Ctrl+P | Open session history |
+| ⌘/Ctrl+Shift+] / [ | Next / previous page (cycles); cycles Settings tabs when modal is open |
+| ⌘/Ctrl+L | Toggle done on focused task (Tasks) |
+| ↑ / ↓ | Cycle task focus (Tasks) |
+| Esc | Close open modal / panel |
+
+### Privacy
+
+Provider choice, model, API keys, sessions, and sort memory are stored in plain
+local files on your machine — never bundled, never uploaded anywhere except the
+LLM provider you configure.
 
 ## Where your data lives
 
-| File            | Location (macOS)                                                        | Contents                          |
-| --------------- | ----------------------------------------------------------------------- | --------------------------------- |
-| `settings.json` | `~/Library/Application Support/com.silverbrain.app/` (app **config** dir) | provider, model, API keys         |
-| `data.json`     | same app **data** dir                                                   | dump text, tasks, matrix, todos, pomodoro stats |
+| File | Location (macOS) | Contents |
+| ---- | ---------------- | -------- |
+| `settings.json` | `~/Library/Application Support/com.silverbrain.desktop/` (app **config** dir) | provider, model, API keys, language, extraction prompt, theme |
+| `data.json` | same app **data** dir | brain-dump sessions, active session, draft dump, pomodoro stats |
+| `memory.md` | same app **data** dir | learned Eisenhower sort preferences (markdown prose) |
 
 On Linux/Windows these resolve to the platform's standard config/data dirs.
 
@@ -42,6 +93,14 @@ LLM requests are made from the frontend via LangChain, but routed through Tauri'
 HTTP plugin (`@tauri-apps/plugin-http`). That proxies the request through the Rust
 process, which sidesteps the WebView's CORS restrictions — so you can call
 provider APIs directly with a key read from the local config file.
+
+Three call types:
+
+1. **Extraction** — parses tasks (with quadrant guesses) from a dump; injects
+   `memory.md` content when present.
+2. **Session meta** — generates a short title and summary for a new session.
+3. **Sort learning** — on Finish Sorting, distills corrections into updated
+   `memory.md` prose (runs in the background; navigation to Tasks is immediate).
 
 Allowed endpoints are declared in
 [`src-tauri/capabilities/default.json`](src-tauri/capabilities/default.json). Add a
@@ -77,15 +136,19 @@ pnpm tauri build    # produces installers in src-tauri/target/release/bundle/
 ## Project layout
 
 ```
-index.html              # app shell (3 views: brain dump, todo, pomodoro)
+index.html              # app shell (sidebar, 4 views, settings/history/export modals)
 src/
-  main.ts               # bootstrap, tab nav, settings modal
-  config.ts             # settings/data file persistence (Tauri fs)
-  store.ts              # in-memory state + debounced save
-  llm.ts                # LangChain multi-provider + task extraction
+  main.ts               # bootstrap, sidebar, 4-view nav, settings tabs, shortcuts
+  config.ts             # settings/data/memory persistence (Tauri fs)
+  store.ts              # in-memory state + debounced save; session helpers
+  llm.ts                # LangChain multi-provider, extraction, sort learning
+  i18n.ts               # en/ar translations + applyLanguage (RTL)
+  toast.ts              # non-blocking status toasts
+  notifications.ts      # desktop notifications (Focus timer)
   views/
-    braindump.ts        # brain dump + Eisenhower matrix
-    todo.ts             # todo list
-    pomodoro.ts         # pomodoro timer
-src-tauri/              # Rust host (fs + http plugins)
+    braindump.ts        # minimal dump page + extract + history
+    sort.ts             # Eisenhower matrix, drag-and-drop, export, finish sorting
+    todo.ts             # quadrant-grouped task checklist
+    pomodoro.ts         # focus timer
+src-tauri/              # Rust host (fs + http + notification plugins)
 ```
