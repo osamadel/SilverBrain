@@ -1,6 +1,6 @@
 [package]
 name = "silver-brain"
-version = "0.1.0"
+version = "0.1.1"
 description = "Brain dump → Eisenhower Matrix → Todo + Pomodoro"
 authors = ["Osama Adel"]
 edition = "2021"
