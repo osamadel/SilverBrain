@@ -1,0 +1,58 @@
+---
+description: Bump project version before every git commit
+alwaysApply: true
+---
+
+# Version bump before commit
+
+Whenever the user asks you to create a git commit, **bump the project version first** and include that bump in the same commit. Do not commit without completing this step unless the user explicitly says to skip the version bump.
+
+## Ask the user first
+
+Before staging or committing, ask which version bump to apply:
+
+- **patch** — bug fixes, small tweaks (`0.1.0` → `0.1.1`)
+- **minor** — new features, backward-compatible (`0.1.0` → `0.2.0`)
+- **major** — breaking changes (`0.1.0` → `1.0.0`)
+- **alpha** — alpha pre-release (`0.2.0` → `0.2.0-alpha.1`, or increment `alpha.N`)
+- **beta** — beta pre-release (`0.2.0` → `0.2.0-beta.1`, or increment `beta.N`)
+- **pre-release** — generic pre-release (`0.2.0` → `0.2.0-rc.1`, or increment existing suffix)
+
+Wait for the user's answer before bumping or committing.
+
+## Version files (keep in sync)
+
+| File | Field |
+|------|-------|
+| `package.json` | `"version"` |
+| `src-tauri/Cargo.toml` | `version` under `[package]` |
+| `src-tauri/tauri.conf.json` | `"version"` |
+
+Read the current version from `package.json`, compute the new version, then update all three files.
+
+## Bump rules
+
+| Bump type | Rule |
+|-----------|------|
+| patch | Increment PATCH; drop pre-release |
+| minor | Increment MINOR; reset PATCH to `0`; drop pre-release |
+| major | Increment MAJOR; reset MINOR and PATCH to `0`; drop pre-release |
+| alpha | Increment `alpha.N` if present, else append `-alpha.1` |
+| beta | Increment `beta.N` if present, else append `-beta.1` |
+| pre-release | Increment existing pre-release `N`, else append `-rc.1` |
+
+## Commit
+
+Stage the version files with the other changes. Mention the new version in the commit message (e.g. `v0.1.1: fix matrix drag-and-drop`).
+
+## Tag
+
+After the commit succeeds, create an annotated tag on that commit:
+
+```bash
+git tag -a v{VERSION} -m "v{VERSION}"
+```
+
+If the tag already exists, stop and tell the user — do not overwrite it. Do not push the tag unless the user explicitly asks (`git push origin v{VERSION}`).
+
+See also `CLAUDE.md` for the full protocol.
