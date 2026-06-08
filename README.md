@@ -4,9 +4,6 @@ A cross-platform desktop productivity app that takes a messy **brain dump**, use
 an LLM to extract clean tasks, lets you sort them on an **Eisenhower Matrix**, and
 carries them into a **Todo** list and a **Pomodoro** timer.
 
-The name is a pun: in Egyptian Arabic *"فضّي دماغك"* means *"dump your brain"* —
-and *فضّي* can also mean *silver*.
-
 Built with [Tauri 2](https://tauri.app) (Rust + WebView), a vanilla
 TypeScript/Vite frontend, and [LangChain.js](https://js.langchain.com) for
 multi-provider LLM support.
