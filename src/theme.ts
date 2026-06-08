@@ -37,10 +37,16 @@ export function applyEffectiveTheme(pref: ThemePref = getThemePref()): void {
 
 /**
  * Keep this window's theme in sync after the initial apply:
- * - `storage` fires in *other* windows when the preference changes, so the
- *   popover follows the main window live.
+ * - `storage` fires in *other* documents of the same window when the preference
+ *   changes (covers same-window updates).
  * - the media query fires when the OS appearance flips while in system mode.
  * `onChange` lets callers refresh dependent UI (e.g. seg-button state).
+ *
+ * NB: the `storage` event does **not** cross separate Tauri webview windows
+ * (WKWebView delivers it per-webview), so auxiliary windows like the tray
+ * popover and quick-add overlay must additionally use {@link listenTheme} to
+ * follow the main window live. localStorage itself is shared, so the initial
+ * {@link applyEffectiveTheme} on load is correct.
  */
 export function initThemeSync(onChange?: () => void): void {
   window.addEventListener("storage", (e) => {
@@ -55,4 +61,37 @@ export function initThemeSync(onChange?: () => void): void {
       onChange?.();
     }
   });
+}
+
+// ── Cross-window propagation (Tauri) ────────────────────────────────────────
+// The main window owns the theme preference; auxiliary windows can't see its
+// live changes through `storage`, so the main window broadcasts the resolved
+// effective theme over a Tauri event and the others listen.
+
+const THEME_EVENT = "theme:state";
+
+function isTauri(): boolean {
+  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+}
+
+/** Main window: announce the effective theme to all other windows. No-op off Tauri. */
+export async function broadcastTheme(theme: EffectiveTheme): Promise<void> {
+  if (!isTauri()) return;
+  try {
+    const { emit } = await import("@tauri-apps/api/event");
+    await emit(THEME_EVENT, theme);
+  } catch (e) {
+    console.warn("broadcastTheme failed:", e);
+  }
+}
+
+/** Auxiliary windows: apply the effective theme whenever the main window broadcasts it. */
+export async function listenTheme(onTheme: (theme: EffectiveTheme) => void): Promise<void> {
+  if (!isTauri()) return;
+  try {
+    const { listen } = await import("@tauri-apps/api/event");
+    await listen<EffectiveTheme>(THEME_EVENT, (e) => onTheme(e.payload));
+  } catch (e) {
+    console.warn("listenTheme failed:", e);
+  }
 }

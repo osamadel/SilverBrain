@@ -2,7 +2,7 @@
 import { store } from "./store";
 import { saveData, uid, type Quadrant } from "./config";
 import { applyLanguage, t } from "./i18n";
-import { applyEffectiveTheme, initThemeSync } from "./theme";
+import { effectiveTheme, initThemeSync, listenTheme, type EffectiveTheme } from "./theme";
 
 export const QUICK_ADD_TASK_EVENT = "quick-add:task-added";
 
@@ -242,14 +242,19 @@ async function wireTauriEvents() {
   });
 }
 
+function applyTheme(eff: EffectiveTheme) {
+  document.documentElement.classList.toggle("light", eff === "light");
+}
+
 function initTheme() {
   try {
-    // Match the main app's theme (incl. "system") and follow it live: the main
-    // window's preference changes reach us via the storage event, OS appearance
-    // flips via the media query. The overlay has no vibrancy backdrop
-    // (set_effects(None)), so the `.light` class on the content is all we need.
-    applyEffectiveTheme();
-    initThemeSync();
+    // Match the main app's theme (incl. "system"). The overlay has no vibrancy
+    // backdrop (set_effects(None)), so the `.light` class on the content is all
+    // we need. Initial value from the (shared) localStorage; OS flips in system
+    // mode via the media query; live preference changes from the main window via
+    // its broadcast (listenTheme) — the storage event doesn't cross windows.
+    applyTheme(effectiveTheme());
+    initThemeSync(() => applyTheme(effectiveTheme()));
   } catch {
     /* storage / matchMedia unavailable */
   }
@@ -257,6 +262,7 @@ function initTheme() {
 
 async function main() {
   initTheme();
+  await listenTheme(applyTheme);
   await store.init();
   applyLanguage((store.settings.language ?? "en") as "en" | "ar");
   updateBadge();

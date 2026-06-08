@@ -17,7 +17,7 @@ import { initConfirmDialog, isConfirmDialogOpen, closeConfirmDialog, confirmDial
 import { initPomodoro, focusOnTask, refreshPomodoroI18n, openTaskPopover, toggleTimer, skipToNextSession, fullResetTimer, handleTrayCmd, completeActiveTask } from "./views/pomodoro";
 import { initTrayBridge } from "./tray";
 import { initQuickAddBridge } from "./quick-add-bridge";
-import { type ThemePref, getThemePref, setThemePref, applyEffectiveTheme, initThemeSync } from "./theme";
+import { type ThemePref, getThemePref, setThemePref, effectiveTheme, applyEffectiveTheme, initThemeSync, broadcastTheme } from "./theme";
 import {
   initSettingsPermissions,
   refreshPermissionsPanel,
@@ -137,6 +137,9 @@ function applyTheme(pref: ThemePref) {
   setThemePref(pref);
   applyEffectiveTheme(pref);
   syncThemeButtons(pref);
+  // Auxiliary windows (tray popover, quick-add) can't see our localStorage
+  // changes, so push the resolved theme to them over a Tauri event.
+  void broadcastTheme(effectiveTheme(pref));
 }
 
 function initTheme() {
@@ -144,8 +147,11 @@ function initTheme() {
   document.querySelectorAll<HTMLElement>("#themeControl .seg-btn").forEach((b) => {
     b.onclick = () => applyTheme(b.dataset.theme as ThemePref);
   });
-  // Follow OS appearance changes live while in system mode.
-  initThemeSync(() => syncThemeButtons(getThemePref()));
+  // Follow OS appearance changes live while in system mode (and rebroadcast).
+  initThemeSync(() => {
+    syncThemeButtons(getThemePref());
+    void broadcastTheme(effectiveTheme());
+  });
 }
 
 // ─── First-launch hint (replaces carousel onboarding) ───────────────────────
