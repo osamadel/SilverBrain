@@ -1,4 +1,4 @@
-# SilverBrain · فضّي دماغك
+# SilverBrain
 
 A cross-platform desktop productivity app that takes a messy **brain dump**, uses
 an LLM to extract clean tasks, lets you sort them on an **Eisenhower Matrix**, and
