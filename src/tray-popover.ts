@@ -8,6 +8,7 @@ import {
   hideTrayPopover,
   type PomodoroState,
 } from "./tray";
+import { effectiveTheme, initThemeSync, listenTheme, type EffectiveTheme } from "./theme";
 
 function format(sec: number): string {
   const mm = Math.floor(sec / 60).toString().padStart(2, "0");
@@ -32,12 +33,8 @@ function render(state: PomodoroState) {
 }
 
 async function main() {
-  document.documentElement.classList.toggle(
-    "light",
-    localStorage.getItem("sb-theme") === "light",
-  );
-
-  if ("__TAURI_INTERNALS__" in window) {
+  const isTauri = "__TAURI_INTERNALS__" in window;
+  if (isTauri) {
     try {
       const { Effect, getCurrentWindow } = await import("@tauri-apps/api/window");
       const win = getCurrentWindow();
@@ -51,6 +48,31 @@ async function main() {
       console.warn("popover window configure failed:", e);
     }
   }
+
+  // Apply a theme to both the web content (`.light`) and the *native* window
+  // appearance. The native side forces the vibrancy backdrop to match the app
+  // theme rather than the OS; it's window-scoped via a dedicated Rust command
+  // (Tauri's setTheme is app-global and would flip the main window's chrome).
+  const setNativeAppearance = async (dark: boolean) => {
+    if (!isTauri) return;
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("set_popover_appearance", { dark });
+    } catch (e) {
+      console.warn("set_popover_appearance failed:", e);
+    }
+  };
+  const applyTheme = (eff: EffectiveTheme) => {
+    document.documentElement.classList.toggle("light", eff === "light");
+    void setNativeAppearance(eff === "dark");
+  };
+
+  // Initial value from the (shared) localStorage; OS flips in system mode via
+  // the media query; live preference changes from the main window via its
+  // broadcast — the `storage` event does not cross webview windows.
+  applyTheme(effectiveTheme());
+  initThemeSync(() => applyTheme(effectiveTheme()));
+  await listenTheme(applyTheme);
 
   await store.init();
   applyLanguage((store.settings.language ?? "en") as Lang);

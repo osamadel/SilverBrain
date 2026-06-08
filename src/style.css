@@ -1234,6 +1234,20 @@ body.sidebar-collapsed .sidebar-toggle--floating { display: flex; }
   cursor: not-allowed;
   transform: translateY(0) scale(1);
 }
+/* Extracting: swap the keyboard chip for a spinner so the button signals work. */
+.extract-spinner {
+  display: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--on-surface) 22%, transparent);
+  border-top-color: var(--on-surface);
+  animation: extractSpin 0.6s linear infinite;
+}
+.extract-btn.is-loading { opacity: 1; }
+.extract-btn.is-loading .extract-kbd-chip { display: none; }
+.extract-btn.is-loading .extract-spinner { display: inline-block; }
+@keyframes extractSpin { to { transform: rotate(360deg); } }
 .extract-kbd-chip {
   display: inline-flex;
   align-items: center;

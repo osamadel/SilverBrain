@@ -2,6 +2,7 @@
 import { store } from "./store";
 import { saveData, uid, type Quadrant } from "./config";
 import { applyLanguage, t } from "./i18n";
+import { effectiveTheme, initThemeSync, listenTheme, type EffectiveTheme } from "./theme";
 
 export const QUICK_ADD_TASK_EVENT = "quick-add:task-added";
 
@@ -241,19 +242,27 @@ async function wireTauriEvents() {
   });
 }
 
+function applyTheme(eff: EffectiveTheme) {
+  document.documentElement.classList.toggle("light", eff === "light");
+}
+
 function initTheme() {
   try {
-    document.documentElement.classList.toggle(
-      "light",
-      localStorage.getItem("sb-theme") === "light",
-    );
+    // Match the main app's theme (incl. "system"). The overlay has no vibrancy
+    // backdrop (set_effects(None)), so the `.light` class on the content is all
+    // we need. Initial value from the (shared) localStorage; OS flips in system
+    // mode via the media query; live preference changes from the main window via
+    // its broadcast (listenTheme) — the storage event doesn't cross windows.
+    applyTheme(effectiveTheme());
+    initThemeSync(() => applyTheme(effectiveTheme()));
   } catch {
-    /* storage unavailable */
+    /* storage / matchMedia unavailable */
   }
 }
 
 async function main() {
   initTheme();
+  await listenTheme(applyTheme);
   await store.init();
   applyLanguage((store.settings.language ?? "en") as "en" | "ar");
   updateBadge();

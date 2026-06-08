@@ -115,6 +115,7 @@ async function runExtract() {
 
   const btn = $<HTMLButtonElement>("extractBtn");
   btn.disabled = true;
+  btn.classList.add("is-loading");
 
   try {
     const memory = await loadMemory().catch(() => "");
@@ -166,6 +167,7 @@ async function runExtract() {
     console.error(e);
   } finally {
     btn.disabled = false;
+    btn.classList.remove("is-loading");
   }
 }
 
