@@ -1,0 +1,27 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "quick-add",
+  "description": "Permissions for the macOS quick-add overlay window.",
+  "windows": ["quick-add"],
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "core:window:allow-hide",
+    "core:window:allow-set-shadow",
+    "core:window:allow-set-background-color",
+    "core:window:allow-set-effects",
+    "fs:default",
+    "fs:allow-read-text-file",
+    "fs:allow-write-text-file",
+    "fs:allow-exists",
+    "fs:allow-mkdir",
+    "fs:allow-appconfig-read-recursive",
+    "fs:allow-appconfig-write-recursive",
+    "fs:allow-appdata-read-recursive",
+    "fs:allow-appdata-write-recursive",
+    {
+      "identifier": "fs:scope",
+      "allow": ["$APPCONFIG", "$APPCONFIG/**", "$APPDATA", "$APPDATA/**"]
+    }
+  ]
+}

@@ -4,6 +4,21 @@ import { store } from "../store";
 import { type Quadrant } from "../config";
 import { t } from "../i18n";
 import { ensureNotificationPermission, showSystemNotification } from "../notifications";
+import {
+  NOTIFICATION_SOUND_IDS,
+  normalizeSoundId,
+  playNotificationSound,
+  type NotificationSoundId,
+} from "../notification-sounds";
+import {
+  activateTray,
+  hideMainWindow,
+  showMainWindow,
+  syncTrayState,
+  type PomodoroCmd,
+  type PomodoroMode,
+  type PomodoroState,
+} from "../tray";
 
 const QUADRANT_BADGE_KEY: Record<Quadrant, string> = {
   q1: "todo-badge-q1",
@@ -12,12 +27,13 @@ const QUADRANT_BADGE_KEY: Record<Quadrant, string> = {
   q4: "todo-badge-q4",
 };
 
-type Mode = "focus" | "short" | "long";
+type Mode = PomodoroMode;
 
 let mode: Mode = "focus";
 let remaining = 0; // seconds
 let running = false;
 let ticker: number | null = null;
+let endAt: number | null = null; // wall-clock ms when the timer hits zero
 let activeTaskText = "";
 
 // Keyboard cursor index within the open task popover (-1 = none).
@@ -44,15 +60,30 @@ const MODE_I18N_KEYS: Record<Mode, string> = {
   long:  "pomo-mode-long",
 };
 
+function currentState(): PomodoroState {
+  return {
+    remaining,
+    running,
+    mode,
+    taskText: activeTaskText,
+    focusSessions: store.data.focusSessions,
+  };
+}
+
+function broadcastState() {
+  void syncTrayState(currentState());
+}
+
 function renderTime() {
   $("pomoTime").textContent = format(remaining);
   $("pomoStartBtn").textContent = running ? t("btn-pomo-pause") : t("btn-pomo-start");
   $("pomoCount").textContent = t("pomo-sessions", { count: store.data.focusSessions });
   const outer = document.getElementById("pomoTimerOuter");
   if (outer) outer.classList.toggle("running", running);
+  broadcastState();
 }
 
-function setMode(m: Mode) {
+function setMode(m: Mode, opts?: { autoStart?: boolean }) {
   mode = m;
   stop();
   remaining = durationFor(m);
@@ -62,65 +93,88 @@ function setMode(m: Mode) {
   const label = document.getElementById("pomoModeLabel");
   if (label) {
     const key = MODE_I18N_KEYS[m];
-    label.dataset.i18n = key;          // keep in sync so applyLanguage() picks it up
+    label.dataset.i18n = key;
     label.textContent = t(key);
   }
   renderTime();
+  if (opts?.autoStart) start({ fromAutoStart: true });
+}
+
+function breakAfterFocus(): Mode {
+  const useLong =
+    (store.data.focusSessions + 1) % store.data.pomodoro.interval === 0;
+  return useLong ? "long" : "short";
+}
+
+function shouldAutoStartBreak(next: Mode): boolean {
+  if (next === "short") return store.data.pomodoro.autoStartShort;
+  if (next === "long") return store.data.pomodoro.autoStartLong;
+  return false;
+}
+
+function completeFocusSession() {
+  store.data.focusSessions++;
+  store.persistData();
+  const useLong = store.data.focusSessions % store.data.pomodoro.interval === 0;
+  const next: Mode = useLong ? "long" : "short";
+  const body = t(next === "long" ? "notify-focus-long" : "notify-focus-short");
+  notify(t("notify-title-focus-done"), body, "focus");
+  setMode(next, { autoStart: shouldAutoStartBreak(next) });
+}
+
+function syncRemainingFromDeadline() {
+  if (endAt === null) return;
+  remaining = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
 }
 
 function tick() {
+  syncRemainingFromDeadline();
   if (remaining > 0) {
-    remaining--;
     renderTime();
     return;
   }
-  // Timer hit zero.
   stop();
   if (mode === "focus") {
-    store.data.focusSessions++;
-    store.persistData();
-    // Auto-suggest the appropriate break.
-    const useLong = store.data.focusSessions % store.data.pomodoro.interval === 0;
-    const body = t(useLong ? "notify-focus-long" : "notify-focus-short");
-    notify(t("notify-title-focus-done"), body);
-    setMode(useLong ? "long" : "short");
+    completeFocusSession();
   } else {
     const body = t("notify-break-done");
-    notify(t("notify-title-break-over"), body);
+    notify(t("notify-title-break-over"), body, mode);
     setMode("focus");
   }
 }
 
-function notify(title: string, body: string) {
+function notify(title: string, body: string, kind: Mode) {
   void showSystemNotification(title, body);
-  // A short audible beep via the Web Audio API (no asset needed).
-  try {
-    const ctx = new AudioContext();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = 660;
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.6);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.6);
-  } catch {
-    /* audio not available — ignore */
-  }
+  const p = store.data.pomodoro;
+  const soundId =
+    kind === "focus"
+      ? p.soundFocus
+      : kind === "short"
+        ? p.soundShortBreak
+        : p.soundLongBreak;
+  playNotificationSound(soundId);
 }
 
-function start() {
+async function onFocusStart() {
+  await hideMainWindow();
+}
+
+function start(opts?: { fromAutoStart?: boolean }) {
   if (running) return;
   void ensureNotificationPermission();
   running = true;
-  ticker = window.setInterval(tick, 1000);
+  endAt = Date.now() + remaining * 1000;
+  ticker = window.setInterval(tick, 250);
   renderTime();
+  if (mode === "focus" && !opts?.fromAutoStart) {
+    void onFocusStart();
+  }
 }
 
 function stop() {
+  syncRemainingFromDeadline();
   running = false;
+  endAt = null;
   if (ticker !== null) {
     clearInterval(ticker);
     ticker = null;
@@ -138,11 +192,69 @@ function reset() {
   renderTime();
 }
 
+function skipSession() {
+  stop();
+  if (mode === "focus") {
+    const next = breakAfterFocus();
+    setMode(next, { autoStart: shouldAutoStartBreak(next) });
+  } else {
+    setMode("focus");
+  }
+}
+
+function fullReset() {
+  stop();
+  store.data.focusSessions = 0;
+  store.persistData();
+  mode = "focus";
+  remaining = durationFor("focus");
+  document.querySelectorAll(".pomo-mode").forEach((b) => {
+    b.classList.toggle("active", (b as HTMLElement).dataset.mode === "focus");
+  });
+  const label = document.getElementById("pomoModeLabel");
+  if (label) {
+    label.dataset.i18n = MODE_I18N_KEYS.focus;
+    label.textContent = t(MODE_I18N_KEYS.focus);
+  }
+  renderTime();
+  void showMainWindow();
+}
+
+export function toggleTimer(): void {
+  toggle();
+}
+
+export function skipToNextSession(): void {
+  skipSession();
+}
+
+export function fullResetTimer(): void {
+  fullReset();
+}
+
+export function handleTrayCmd(cmd: PomodoroCmd): void {
+  switch (cmd.action) {
+    case "toggle":
+      toggle();
+      break;
+    case "skip":
+      skipSession();
+      break;
+    case "fullReset":
+      fullReset();
+      break;
+    case "setMode":
+      setMode(cmd.mode);
+      break;
+  }
+}
+
 function renderTaskLabel() {
   const el = $("pomoTask");
   el.textContent = activeTaskText
     ? `${t("pomo-focusing-on")}: ${activeTaskText}`
     : t("pomo-no-task");
+  broadcastState();
 }
 
 function closeTaskPopover() {
@@ -156,7 +268,6 @@ function popoverOptions(): HTMLButtonElement[] {
   return [...$("pomoTaskPopover").querySelectorAll<HTMLButtonElement>(".pomo-task-option")];
 }
 
-// Highlight the option at `index` (clamped/wrapped) as the keyboard cursor.
 function moveCursor(delta: number) {
   const opts = popoverOptions();
   if (!opts.length) return;
@@ -227,7 +338,6 @@ function toggleTaskPopover(open?: boolean) {
     popover.classList.remove("hidden");
     $("pomoTaskWrap").classList.add("open");
     $("pomoTaskBtn").setAttribute("aria-expanded", "true");
-    // Start the keyboard cursor on the currently-selected option.
     const opts = popoverOptions();
     const sel = opts.findIndex((o) => o.classList.contains("selected"));
     popoverCursor = sel === -1 ? -1 : sel;
@@ -243,18 +353,41 @@ function selectTask(text: string) {
   closeTaskPopover();
 }
 
-/** Open the task-picker popover (keyboard shortcut on the Focus page). */
 export function openTaskPopover(): void {
   toggleTaskPopover(true);
 }
 
-/** Set the timer's active task label (called from Todo "focus" button). */
 export function setActiveTask(text: string) {
   activeTaskText = text;
   renderTaskLabel();
 }
 
-/** Re-apply i18n strings after a language change (called from main.ts). */
+/** Mark the active focus task complete, stop the timer, and clear tray if needed. */
+export function completeActiveTask(): boolean {
+  if (!activeTaskText) return false;
+  const session = store.activeSession();
+  if (!session) return false;
+  const item = session.tasks.find((t) => t.text === activeTaskText);
+  if (!item) return false;
+
+  item.done = true;
+  store.persistData();
+  activeTaskText = "";
+  closeTaskPopover();
+  stop();
+  renderTaskLabel();
+  void showMainWindow();
+  return true;
+}
+
+/** Set the active task, switch to focus mode, and start the timer immediately. */
+export function focusOnTask(text: string): void {
+  activeTaskText = text;
+  renderTaskLabel();
+  setMode("focus");
+  start();
+}
+
 export function refreshPomodoroI18n(): void {
   const label = document.getElementById("pomoModeLabel");
   if (label) {
@@ -262,8 +395,48 @@ export function refreshPomodoroI18n(): void {
     label.dataset.i18n = key;
     label.textContent = t(key);
   }
+  for (const id of NOTIFICATION_SOUND_IDS) {
+    document.querySelectorAll<HTMLOptionElement>(`option[value="${id}"]`).forEach((opt) => {
+      opt.textContent = t(`sound-${id}`);
+    });
+  }
+  syncSoundPreview("previewSoundFocus", "setSoundFocus");
+  syncSoundPreview("previewSoundShort", "setSoundShort");
+  syncSoundPreview("previewSoundLong", "setSoundLong");
   renderTaskLabel();
-  renderTime(); // refreshes start/pause btn + session count
+  renderTime();
+}
+
+function populateSoundSelect(select: HTMLSelectElement) {
+  if (select.options.length === NOTIFICATION_SOUND_IDS.length) return;
+  select.innerHTML = "";
+  for (const id of NOTIFICATION_SOUND_IDS) {
+    const opt = document.createElement("option");
+    opt.value = id;
+    opt.dataset.i18n = `sound-${id}`;
+    opt.textContent = t(`sound-${id}`);
+    select.appendChild(opt);
+  }
+}
+
+function syncSoundSelect(
+  selectId: string,
+  value: NotificationSoundId,
+  key: "soundFocus" | "soundShortBreak" | "soundLongBreak",
+) {
+  const select = $<HTMLSelectElement>(selectId);
+  populateSoundSelect(select);
+  select.value = normalizeSoundId(value);
+  select.onchange = (e) => {
+    store.data.pomodoro[key] = normalizeSoundId((e.target as HTMLSelectElement).value);
+    store.persistData();
+  };
+}
+
+function syncSoundPreview(buttonId: string, selectId: string) {
+  const btn = $<HTMLButtonElement>(buttonId);
+  btn.setAttribute("aria-label", t("sound-preview"));
+  btn.onclick = () => playNotificationSound($<HTMLSelectElement>(selectId).value);
 }
 
 function syncSettingsInputs() {
@@ -271,19 +444,30 @@ function syncSettingsInputs() {
   $<HTMLInputElement>("setShort").value = String(store.data.pomodoro.short);
   $<HTMLInputElement>("setLong").value = String(store.data.pomodoro.long);
   $<HTMLInputElement>("setInterval").value = String(store.data.pomodoro.interval);
+  $<HTMLInputElement>("setAutoStartShort").checked = store.data.pomodoro.autoStartShort;
+  $<HTMLInputElement>("setAutoStartLong").checked = store.data.pomodoro.autoStartLong;
+  syncSoundSelect("setSoundFocus", store.data.pomodoro.soundFocus, "soundFocus");
+  syncSoundSelect("setSoundShort", store.data.pomodoro.soundShortBreak, "soundShortBreak");
+  syncSoundSelect("setSoundLong", store.data.pomodoro.soundLongBreak, "soundLongBreak");
+  syncSoundPreview("previewSoundFocus", "setSoundFocus");
+  syncSoundPreview("previewSoundShort", "setSoundShort");
+  syncSoundPreview("previewSoundLong", "setSoundLong");
 }
 
 export function initPomodoro() {
   syncSettingsInputs();
   setMode("focus");
+  // Counter is always visible in the menu bar; it ticks while any session runs.
+  void activateTray(remaining);
 
   document.querySelectorAll(".pomo-mode").forEach((b) => {
     (b as HTMLElement).onclick = () => setMode((b as HTMLElement).dataset.mode as Mode);
   });
   $("pomoStartBtn").onclick = toggle;
   $("pomoResetBtn").onclick = reset;
+  $("pomoSkipBtn").onclick = skipSession;
 
-  const bind = (id: string, key: keyof typeof store.data.pomodoro) => {
+  const bind = (id: string, key: "focus" | "short" | "long" | "interval") => {
     $<HTMLInputElement>(id).onchange = (e) => {
       const v = Math.max(1, parseInt((e.target as HTMLInputElement).value, 10) || 1);
       store.data.pomodoro[key] = v;
@@ -298,6 +482,14 @@ export function initPomodoro() {
   bind("setShort", "short");
   bind("setLong", "long");
   bind("setInterval", "interval");
+  $<HTMLInputElement>("setAutoStartShort").onchange = (e) => {
+    store.data.pomodoro.autoStartShort = (e.target as HTMLInputElement).checked;
+    store.persistData();
+  };
+  $<HTMLInputElement>("setAutoStartLong").onchange = (e) => {
+    store.data.pomodoro.autoStartLong = (e.target as HTMLInputElement).checked;
+    store.persistData();
+  };
 
   $("pomoTaskBtn").onclick = (e) => {
     e.stopPropagation();
@@ -313,9 +505,6 @@ export function initPomodoro() {
       closeTaskPopover();
       return;
     }
-    // Arrow / Enter navigation only while the popover is open. Skip when a
-    // modifier is held so the Cmd/Ctrl+↓ that opens the popover doesn't also
-    // advance the cursor.
     if (!isPopoverOpen() || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();

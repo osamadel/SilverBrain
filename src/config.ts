@@ -9,6 +9,7 @@ import {
   BaseDirectory,
 } from "@tauri-apps/plugin-fs";
 import { appConfigDir, appDataDir, join } from "@tauri-apps/api/path";
+import type { NotificationSoundId } from "./notification-sounds";
 
 export type ProviderId = "anthropic" | "openai" | "google" | "ollama";
 
@@ -31,6 +32,8 @@ export interface AppSettings {
    * to the bottom of their quadrant; `false` keeps them where they sit.
    */
   completedToBottom: boolean;
+  /** When false, the global double-Ctrl quick-add shortcut is disabled. */
+  quickAddEnabled: boolean;
 }
 
 export interface PomodoroSettings {
@@ -38,6 +41,11 @@ export interface PomodoroSettings {
   short: number;
   long: number;
   interval: number;
+  autoStartShort: boolean;
+  autoStartLong: boolean;
+  soundFocus: NotificationSoundId;
+  soundShortBreak: NotificationSoundId;
+  soundLongBreak: NotificationSoundId;
 }
 
 export type Quadrant = "q1" | "q2" | "q3" | "q4";
@@ -93,13 +101,24 @@ export const DEFAULT_SETTINGS: AppSettings = {
   },
   language: "en",
   completedToBottom: true,
+  quickAddEnabled: true,
 };
 
 export const DEFAULT_DATA: AppData = {
   sessions: [],
   activeSessionId: null,
   draftDump: "",
-  pomodoro: { focus: 25, short: 5, long: 15, interval: 4 },
+  pomodoro: {
+    focus: 25,
+    short: 5,
+    long: 15,
+    interval: 4,
+    autoStartShort: false,
+    autoStartLong: false,
+    soundFocus: "digital",
+    soundShortBreak: "digital",
+    soundLongBreak: "digital",
+  },
   focusSessions: 0,
 };
 
@@ -211,7 +230,11 @@ export async function loadData(): Promise<AppData> {
 
     // Already on the session model → merge defaults for any missing scalars.
     if (Array.isArray(parsed?.sessions)) {
-      return { ...structuredClone(DEFAULT_DATA), ...parsed } as AppData;
+      return {
+        ...structuredClone(DEFAULT_DATA),
+        ...parsed,
+        pomodoro: { ...DEFAULT_DATA.pomodoro, ...(parsed?.pomodoro ?? {}) },
+      } as AppData;
     }
 
     // Legacy shape → migrate into a single session.

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" class="quick-add-root">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick Add</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body class="quick-add-body">
+  <div class="quick-add-overlay" id="quickAddOverlay">
+    <form class="quick-add-bar" id="quickAddForm" role="dialog" aria-modal="true" aria-label="Quick add task">
+      <img
+        src="/stitch/silverbrain_pixel_logo/screen.png"
+        alt=""
+        class="quick-add-icon"
+        width="28"
+        height="28"
+        aria-hidden="true"
+      />
+      <input
+        type="text"
+        id="quickAddInput"
+        class="quick-add-input"
+        data-i18n-placeholder="quick-add-ph"
+        placeholder="What do you need to do?"
+        autocomplete="off"
+        spellcheck="true"
+        aria-label="Task"
+      />
+      <button
+        type="button"
+        id="quickAddQuadrant"
+        class="todo-badge todo-badge-btn q-none"
+        aria-haspopup="listbox"
+        aria-expanded="false"
+      >No quadrant</button>
+    </form>
+    <div class="quadrant-picker quick-add-picker hidden" id="quickAddPicker" role="listbox" hidden></div>
+  </div>
+  <script type="module" src="/src/quick-add.ts"></script>
+</body>
+</html>

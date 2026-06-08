@@ -12,8 +12,16 @@ import { applyLanguage, t, getLang, type Lang } from "./i18n";
 import { refreshToasts } from "./toast";
 import { initBrainDump, refreshBrainDumpChrome, refreshBrainDumpConfig, refreshDraft } from "./views/braindump";
 import { initSort, renderSort, requestFinishSort } from "./views/sort";
-import { initTodo, refreshTodoI18n, focusFirstTask, moveTaskFocus, toggleFocusedTaskDone } from "./views/todo";
-import { initPomodoro, setActiveTask, refreshPomodoroI18n, openTaskPopover } from "./views/pomodoro";
+import { initTodo, refreshTodoI18n, focusHighlightedTask, moveTaskFocus, toggleFocusedTaskDone, editFocusedTask, isQuadrantPickerOpen, openFocusedQuadrantPicker, closeQuadrantPickerMenu, moveQuadrantPickerFocus, selectFocusedQuadrantOption, requestDeleteFocusedTask } from "./views/todo";
+import { initConfirmDialog, isConfirmDialogOpen, closeConfirmDialog, confirmDialogAction } from "./confirm-dialog";
+import { initPomodoro, focusOnTask, refreshPomodoroI18n, openTaskPopover, toggleTimer, skipToNextSession, fullResetTimer, handleTrayCmd, completeActiveTask } from "./views/pomodoro";
+import { initTrayBridge } from "./tray";
+import { initQuickAddBridge } from "./quick-add-bridge";
+import {
+  initSettingsPermissions,
+  refreshPermissionsPanel,
+  registerSettingsNavigation,
+} from "./settings-permissions";
 
 // Injected by Vite from package.json — used as the About-tab version fallback in browser preview.
 declare const __APP_VERSION__: string;
@@ -189,7 +197,7 @@ function showProviderFields(id: ProviderId) {
   $<HTMLInputElement>("baseUrlInput").value = cfg.baseUrl || "";
 }
 
-function openSettings() {
+function openSettings(initialTab?: string) {
   const sel = $<HTMLSelectElement>("providerSelect");
   sel.value = store.settings.provider;
   showProviderFields(store.settings.provider);
@@ -199,8 +207,17 @@ function openSettings() {
   applyTheme(currentTheme()); // refresh seg-button active state
   $<HTMLTextAreaElement>("promptTextarea").value =
     store.settings.extractionPrompt?.trim() || DEFAULT_EXTRACTION_PROMPT;
-  activateSettingsTab(0);
+
+  const tabs = settingsTabs();
+  let tabIndex = 0;
+  if (initialTab) {
+    const found = tabs.findIndex((t) => t.dataset.tab === initialTab);
+    if (found >= 0) tabIndex = found;
+  }
+  activateSettingsTab(tabIndex);
+
   void refreshAboutPanel();
+  void refreshPermissionsPanel();
   $("modalBackdrop").classList.remove("hidden");
 }
 
@@ -305,7 +322,9 @@ function detectPlatform(): string {
 function wireSettingsModal() {
   populateProviderSelect();
   wireSettingsTabs();
-  $("settingsBtn").onclick = openSettings;
+  registerSettingsNavigation((tab) => openSettings(tab));
+  initSettingsPermissions();
+  $("settingsBtn").onclick = () => openSettings();
   $("modalCloseBtn").onclick = closeSettings;
   $("modalCancelBtn").onclick = closeSettings;
   $("modalSaveBtn").onclick = saveSettingsFromModal;
@@ -423,6 +442,7 @@ const HELP_GROUPS: {
   {
     titleKey: "kb-group-general",
     rows: [
+      ...(IS_MAC ? [{ keys: ["Ctrl", "Ctrl"], descKey: "kb-quick-add" }] : []),
       { keys: [MOD, ","], descKey: "kb-settings" },
       { keys: [MOD, "B"], descKey: "kb-sidebar" },
       { keys: [MOD, "P"], descKey: "kb-history" },
@@ -436,17 +456,24 @@ const HELP_GROUPS: {
     titleKey: "kb-group-tasks",
     rows: [
       { keys: ["↑", "↓"], descKey: "kb-cycle-tasks", sep: "/" },
+      { keys: ["↵"], descKey: "kb-edit-task" },
+      { keys: ["Space"], descKey: "kb-change-quadrant" },
+      { keys: [MOD, "⌫"], descKey: "kb-delete-task" },
       { keys: [MOD, "L"], descKey: "kb-toggle-done" },
-      { keys: [MOD, "↵"], descKey: "kb-focus-first" },
+      { keys: [MOD, "↵"], descKey: "kb-focus-highlighted" },
       { keys: [MOD, "↵"], descKey: "kb-finish-sort" },
     ],
   },
   {
     titleKey: "kb-group-focus",
     rows: [
+      { keys: ["Space"], descKey: "kb-pomo-toggle" },
+      { keys: [MOD, "⇧", "→"], descKey: "kb-pomo-skip" },
+      { keys: [MOD, "⇧", "R"], descKey: "kb-pomo-full-reset" },
       { keys: [MOD, "↓"], descKey: "kb-open-task-picker" },
       { keys: ["↑", "↓"], descKey: "kb-nav-picker", sep: "/" },
       { keys: ["↵"], descKey: "kb-select-task" },
+      { keys: [MOD, "↵"], descKey: "kb-complete-focus-task" },
     ],
   },
 ];
@@ -540,21 +567,84 @@ function closeTopModal() {
 
 function wireGlobalShortcuts() {
   document.addEventListener("keydown", (e) => {
-    // Esc → dismiss the open panel (settings, help, history, export)
-    if (e.key === "Escape" && anyModalOpen()) {
+    // Esc → dismiss confirm dialog, quadrant picker, or the open panel
+    if (e.key === "Escape") {
+      if (isConfirmDialogOpen()) {
+        e.preventDefault();
+        closeConfirmDialog();
+        return;
+      }
+      if (isQuadrantPickerOpen()) {
+        e.preventDefault();
+        closeQuadrantPickerMenu();
+        return;
+      }
+      if (anyModalOpen()) {
+        e.preventDefault();
+        closeTopModal();
+        return;
+      }
+    }
+
+    // Enter → confirm delete dialog action
+    if (
+      e.key === "Enter" &&
+      !e.metaKey && !e.ctrlKey && !e.altKey &&
+      isConfirmDialogOpen()
+    ) {
       e.preventDefault();
-      closeTopModal();
+      confirmDialogAction();
       return;
     }
 
-    // ↑ / ↓ → cycle task focus on the Tasks page (no modifier)
+    // Space → open quadrant picker on Tasks page, or start/pause Pomodoro on Focus page
+    if (
+      e.key === " " &&
+      !anyModalOpen() &&
+      !isTypingTarget(e.target)
+    ) {
+      if (currentView === "todo") {
+        e.preventDefault();
+        if (isQuadrantPickerOpen()) closeQuadrantPickerMenu();
+        else openFocusedQuadrantPicker();
+        return;
+      }
+      if (currentView === "pomodoro") {
+        e.preventDefault();
+        toggleTimer();
+        return;
+      }
+    }
+
+    // ↑ / ↓ → navigate quadrant picker or cycle task focus on the Tasks page
     if (
       (e.key === "ArrowUp" || e.key === "ArrowDown") &&
       !e.metaKey && !e.ctrlKey && !e.altKey
     ) {
+      if (isQuadrantPickerOpen()) {
+        e.preventDefault();
+        moveQuadrantPickerFocus(e.key === "ArrowDown" ? 1 : -1);
+        return;
+      }
       if (currentView !== "todo" || anyModalOpen() || isTypingTarget(e.target)) return;
       e.preventDefault();
       moveTaskFocus(e.key === "ArrowDown" ? 1 : -1);
+      return;
+    }
+
+    // Enter → select quadrant, edit highlighted task, or other context actions
+    if (
+      e.key === "Enter" &&
+      !e.metaKey && !e.ctrlKey && !e.altKey
+    ) {
+      if (isQuadrantPickerOpen()) {
+        e.preventDefault();
+        selectFocusedQuadrantOption();
+        return;
+      }
+      if (currentView !== "todo" || anyModalOpen() || isTypingTarget(e.target)) return;
+      e.preventDefault();
+      editFocusedTask();
       return;
     }
 
@@ -568,9 +658,16 @@ function wireGlobalShortcuts() {
     }
     // Cmd/Ctrl+L  → toggle the focused task complete (Tasks page)
     if (e.key.toLowerCase() === "l") {
-      if (currentView !== "todo" || anyModalOpen()) return;
+      if (currentView !== "todo" || anyModalOpen() || isConfirmDialogOpen() || isQuadrantPickerOpen()) return;
       e.preventDefault();
       toggleFocusedTaskDone();
+      return;
+    }
+    // Cmd/Ctrl+Delete/Backspace → delete the focused task (Tasks page)
+    if (e.key === "Delete" || e.key === "Backspace") {
+      if (currentView !== "todo" || anyModalOpen() || isConfirmDialogOpen() || isQuadrantPickerOpen() || isTypingTarget(e.target)) return;
+      e.preventDefault();
+      requestDeleteFocusedTask();
       return;
     }
     // Cmd/Ctrl+↓  → open the task-picker popover (Focus page)
@@ -578,6 +675,20 @@ function wireGlobalShortcuts() {
       if (currentView !== "pomodoro" || anyModalOpen()) return;
       e.preventDefault();
       openTaskPopover();
+      return;
+    }
+    // Cmd/Ctrl+Shift+→  → skip to next Pomodoro session (Focus page)
+    if (e.shiftKey && e.code === "ArrowRight") {
+      if (currentView !== "pomodoro" || anyModalOpen()) return;
+      e.preventDefault();
+      skipToNextSession();
+      return;
+    }
+    // Cmd/Ctrl+Shift+R  → full Pomodoro reset (Focus page)
+    if (e.shiftKey && e.key.toLowerCase() === "r") {
+      if (currentView !== "pomodoro" || anyModalOpen()) return;
+      e.preventDefault();
+      fullResetTimer();
       return;
     }
     // Cmd/Ctrl+P  → open the dump history
@@ -620,7 +731,10 @@ function wireGlobalShortcuts() {
         requestFinishSort();
       } else if (currentView === "todo") {
         e.preventDefault();
-        focusFirstTask();
+        focusHighlightedTask();
+      } else if (currentView === "pomodoro") {
+        e.preventDefault();
+        if (completeActiveTask()) switchView("todo");
       }
     }
   });
@@ -640,6 +754,7 @@ async function main() {
   wireExport();
   wireHelp();
   wireSidebarToggle();
+  initConfirmDialog();
   wireGlobalShortcuts();
 
   document.querySelectorAll(".tab").forEach((tab) => {
@@ -659,11 +774,13 @@ async function main() {
   });
   initTodo({
     onFocusTask: (text) => {
-      setActiveTask(text);
+      focusOnTask(text);
       switchView("pomodoro");
     },
   });
   initPomodoro();
+  void initTrayBridge(handleTrayCmd);
+  void initQuickAddBridge();
 
   refreshSettingsBtn();
   refreshBrainDumpConfig();

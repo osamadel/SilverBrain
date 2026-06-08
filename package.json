@@ -1,7 +1,7 @@
 {
   "name": "silver-brain",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.0",
   "type": "module",
   "description": "Brain dump → Eisenhower Matrix → Todo + Pomodoro productivity app",
   "scripts": {
@@ -20,7 +20,8 @@
     "@tauri-apps/api": "^2.2.0",
     "@tauri-apps/plugin-fs": "^2.2.0",
     "@tauri-apps/plugin-http": "^2.2.0",
-    "@tauri-apps/plugin-notification": "^2.2.0"
+    "@tauri-apps/plugin-notification": "^2.2.0",
+    "@tauri-apps/plugin-positioner": "^2.2.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.2.5",
@@ -28,9 +29,6 @@
     "vite": "^6.0.7"
   },
   "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
-  },
-  "packageManager": "pnpm@11.5.2+sha512.71c631e382066efc25625d5cf029075de07b61b37f6e27350fbd84b1bda5864c8c1967adc280776b45c30a715c0359a3be08fef42d5bb09e2b99029979692916"
+    "onlyBuiltDependencies": ["esbuild"]
+  }
 }
