@@ -2,6 +2,7 @@
 import { store } from "./store";
 import { saveData, uid, type Quadrant } from "./config";
 import { applyLanguage, t } from "./i18n";
+import { applyEffectiveTheme, initThemeSync } from "./theme";
 
 export const QUICK_ADD_TASK_EVENT = "quick-add:task-added";
 
@@ -243,12 +244,14 @@ async function wireTauriEvents() {
 
 function initTheme() {
   try {
-    document.documentElement.classList.toggle(
-      "light",
-      localStorage.getItem("sb-theme") === "light",
-    );
+    // Match the main app's theme (incl. "system") and follow it live: the main
+    // window's preference changes reach us via the storage event, OS appearance
+    // flips via the media query. The overlay has no vibrancy backdrop
+    // (set_effects(None)), so the `.light` class on the content is all we need.
+    applyEffectiveTheme();
+    initThemeSync();
   } catch {
-    /* storage unavailable */
+    /* storage / matchMedia unavailable */
   }
 }
 
