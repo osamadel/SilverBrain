@@ -8,6 +8,7 @@ import {
   hideTrayPopover,
   type PomodoroState,
 } from "./tray";
+import { applyEffectiveTheme, initThemeSync } from "./theme";
 
 function format(sec: number): string {
   const mm = Math.floor(sec / 60).toString().padStart(2, "0");
@@ -32,10 +33,11 @@ function render(state: PomodoroState) {
 }
 
 async function main() {
-  document.documentElement.classList.toggle(
-    "light",
-    localStorage.getItem("sb-theme") === "light",
-  );
+  // Match the main app's theme (incl. "system"), and follow it live: the main
+  // window's preference changes reach us via the storage event, OS appearance
+  // flips via the media query.
+  applyEffectiveTheme();
+  initThemeSync();
 
   if ("__TAURI_INTERNALS__" in window) {
     try {

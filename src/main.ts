@@ -17,6 +17,7 @@ import { initConfirmDialog, isConfirmDialogOpen, closeConfirmDialog, confirmDial
 import { initPomodoro, focusOnTask, refreshPomodoroI18n, openTaskPopover, toggleTimer, skipToNextSession, fullResetTimer, handleTrayCmd, completeActiveTask } from "./views/pomodoro";
 import { initTrayBridge } from "./tray";
 import { initQuickAddBridge } from "./quick-add-bridge";
+import { type ThemePref, getThemePref, setThemePref, applyEffectiveTheme, initThemeSync } from "./theme";
 import {
   initSettingsPermissions,
   refreshPermissionsPanel,
@@ -120,26 +121,31 @@ function collapseSidebar() {
 
 // ─── Theme ──────────────────────────────────────────────────────────────────────
 // Theme lives in Settings → Appearance and applies live (persisted to localStorage).
+// "System" follows the OS appearance; resolution + cross-window sync live in theme.ts.
 
-type Theme = "light" | "dark";
-
-function currentTheme(): Theme {
-  return document.documentElement.classList.contains("light") ? "light" : "dark";
+function syncThemeButtons(pref: ThemePref) {
+  document.querySelectorAll<HTMLElement>("#themeControl .seg-btn").forEach((b) => {
+    b.classList.toggle("active", b.dataset.theme === pref);
+  });
 }
 
-function applyTheme(theme: Theme) {
-  document.documentElement.classList.toggle("light", theme === "light");
-  localStorage.setItem("sb-theme", theme);
-  document.querySelectorAll<HTMLElement>("#themeControl .seg-btn").forEach((b) => {
-    b.classList.toggle("active", b.dataset.theme === theme);
-  });
+function currentTheme(): ThemePref {
+  return getThemePref();
+}
+
+function applyTheme(pref: ThemePref) {
+  setThemePref(pref);
+  applyEffectiveTheme(pref);
+  syncThemeButtons(pref);
 }
 
 function initTheme() {
-  applyTheme(localStorage.getItem("sb-theme") === "light" ? "light" : "dark");
+  applyTheme(getThemePref());
   document.querySelectorAll<HTMLElement>("#themeControl .seg-btn").forEach((b) => {
-    b.onclick = () => applyTheme(b.dataset.theme as Theme);
+    b.onclick = () => applyTheme(b.dataset.theme as ThemePref);
   });
+  // Follow OS appearance changes live while in system mode.
+  initThemeSync(() => syncThemeButtons(getThemePref()));
 }
 
 // ─── First-launch hint (replaces carousel onboarding) ───────────────────────

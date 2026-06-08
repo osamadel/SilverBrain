@@ -60,6 +60,7 @@ export const translations: TranslationMap = {
   'label-theme':         { en: 'Theme',                         ar: 'السمة' },
   'theme-dark':          { en: 'Dark',                          ar: 'داكن' },
   'theme-light':         { en: 'Light',                         ar: 'فاتح' },
+  'theme-system':        { en: 'System',                        ar: 'النظام' },
   'section-prompt':      { en: 'Task Extraction',               ar: 'استخراج المهام' },
   'label-prompt':        { en: 'Extraction prompt',             ar: 'موجّه الاستخراج' },
   'prompt-hint':         { en: 'Use {dump} for the brain dump and {memory} for learned Eisenhower preferences (optional).', ar: 'استخدم {dump} للتفريغ و{memory} لتفضيلات أيزنهاور المتعلّمة (اختياري).' },
