@@ -9,7 +9,6 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(version),
   },
-  // Prevent Vite from obscuring Rust errors.
   clearScreen: false,
   server: {
     port: 1420,
@@ -19,14 +18,19 @@ export default defineConfig({
       ? { protocol: "ws", host, port: 1421 }
       : undefined,
     watch: {
-      // Don't watch the Rust source tree.
       ignored: ["**/src-tauri/**"],
     },
   },
-  // Produce output Tauri can bundle. Targets match Tauri's webviews.
   build: {
     target: process.env.TAURI_ENV_PLATFORM === "windows" ? "chrome105" : "safari13",
     minify: !process.env.TAURI_ENV_DEBUG ? "esbuild" : false,
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
+    rollupOptions: {
+      input: {
+        main: "index.html",
+        tray: "tray-popover.html",
+        quickAdd: "quick-add.html",
+      },
+    },
   },
 });

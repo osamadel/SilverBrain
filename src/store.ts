@@ -21,6 +21,11 @@ class Store {
     [this.settings, this.data] = await Promise.all([loadSettings(), loadData()]);
   }
 
+  /** Reload app data from disk (e.g. after quick-add overlay writes). */
+  async reloadData() {
+    this.data = await loadData();
+  }
+
   /** The currently-open session, or null when none has been created yet. */
   activeSession(): BrainDumpSession | null {
     const id = this.data.activeSessionId;
