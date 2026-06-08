@@ -8,7 +8,7 @@ import {
   hideTrayPopover,
   type PomodoroState,
 } from "./tray";
-import { applyEffectiveTheme, initThemeSync } from "./theme";
+import { applyEffectiveTheme, effectiveTheme, initThemeSync } from "./theme";
 
 function format(sec: number): string {
   const mm = Math.floor(sec / 60).toString().padStart(2, "0");
@@ -33,13 +33,11 @@ function render(state: PomodoroState) {
 }
 
 async function main() {
-  // Match the main app's theme (incl. "system"), and follow it live: the main
-  // window's preference changes reach us via the storage event, OS appearance
-  // flips via the media query.
+  // Match the main app's theme (incl. "system") for the popover's web content.
   applyEffectiveTheme();
-  initThemeSync();
 
-  if ("__TAURI_INTERNALS__" in window) {
+  const isTauri = "__TAURI_INTERNALS__" in window;
+  if (isTauri) {
     try {
       const { Effect, getCurrentWindow } = await import("@tauri-apps/api/window");
       const win = getCurrentWindow();
@@ -53,6 +51,24 @@ async function main() {
       console.warn("popover window configure failed:", e);
     }
   }
+
+  // Force the popover's *native* window appearance to the effective theme so the
+  // vibrancy backdrop matches the app theme rather than the OS. This is window-
+  // scoped via a dedicated Rust command — Tauri's setTheme is app-global and
+  // would also flip the main window's chrome. Re-applied live alongside the web
+  // content: storage events carry main-window pref changes, the media query
+  // carries OS flips while in "system" mode.
+  const syncNativeAppearance = async () => {
+    if (!isTauri) return;
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("set_popover_appearance", { dark: effectiveTheme() === "dark" });
+    } catch (e) {
+      console.warn("set_popover_appearance failed:", e);
+    }
+  };
+  void syncNativeAppearance();
+  initThemeSync(() => void syncNativeAppearance());
 
   await store.init();
   applyLanguage((store.settings.language ?? "en") as Lang);

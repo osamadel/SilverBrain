@@ -14,6 +14,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             hide_main_window,
             show_main_window,
+            set_popover_appearance,
             set_tray_pill,
             set_tray_visible,
             is_accessibility_trusted,
@@ -367,6 +368,57 @@ fn show_main_window(app: tauri::AppHandle) -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+/// Force the popover window's native appearance (light/dark) so its vibrancy
+/// backdrop matches the app theme instead of the OS. Window-scoped on purpose:
+/// Tauri's `set_theme` sets the app-global `NSApp` appearance, which would also
+/// flip the main window's titlebar/traffic-lights. The frontend calls this
+/// whenever the effective theme changes.
+#[tauri::command]
+fn set_popover_appearance(app: tauri::AppHandle, dark: bool) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        use tauri::Manager;
+        if let Some(popover) = app.get_webview_window("pomodoro-tray") {
+            let target = popover.clone();
+            popover
+                .run_on_main_thread(move || apply_window_appearance(&target, dark))
+                .map_err(|e| e.to_string())?;
+        }
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = (&app, dark);
+    }
+    Ok(())
+}
+
+/// Set an NSWindow's appearance to aqua/darkAqua. Must run on the main thread.
+#[cfg(target_os = "macos")]
+fn apply_window_appearance(win: &tauri::WebviewWindow, dark: bool) {
+    use objc2_app_kit::{
+        NSAppearance, NSAppearanceCustomization, NSAppearanceNameAqua, NSAppearanceNameDarkAqua,
+        NSWindow,
+    };
+
+    let Ok(ptr) = win.ns_window() else {
+        return;
+    };
+    if ptr.is_null() {
+        return;
+    }
+
+    unsafe {
+        let window: &NSWindow = &*(ptr as *const NSWindow);
+        let name = if dark {
+            NSAppearanceNameDarkAqua
+        } else {
+            NSAppearanceNameAqua
+        };
+        let appearance = NSAppearance::appearanceNamed(name);
+        window.setAppearance(appearance.as_deref());
+    }
 }
 
 #[tauri::command]
