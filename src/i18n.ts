@@ -102,6 +102,10 @@ export const translations: TranslationMap = {
   'kb-settings':         { en: 'Open settings',                 ar: 'فتح الإعدادات' },
   'kb-sidebar':          { en: 'Toggle sidebar',                ar: 'إظهار/إخفاء الشريط الجانبي' },
   'kb-history':          { en: 'Open dump history',             ar: 'فتح سجل التفريغ' },
+  'kb-group-history':    { en: 'Brain Dump History',            ar: 'سجل التفريغات' },
+  'kb-history-nav':      { en: 'Highlight previous / next dump', ar: 'تحديد التفريغ السابق / التالي' },
+  'kb-history-load':     { en: 'Load highlighted dump',          ar: 'تحميل التفريغ المحدد' },
+  'kb-history-import':   { en: 'Import highlighted dump’s tasks', ar: 'استيراد مهام التفريغ المحدد' },
   'kb-prev-page':        { en: 'Previous page · settings tab',  ar: 'الصفحة السابقة · تبويب الإعدادات' },
   'kb-next-page':        { en: 'Next page · settings tab',      ar: 'الصفحة التالية · تبويب الإعدادات' },
   'kb-help':             { en: 'Show shortcuts',                ar: 'عرض الاختصارات' },
@@ -160,6 +164,12 @@ export const translations: TranslationMap = {
   'history-desc':        { en: 'Revisit a past brain dump to restore it and all its sorted tasks.', ar: 'ارجع لتفريغ سابق عشان تستعيده مع كل مهامه المرتبة.' },
   'history-empty':       { en: 'No saved brain dumps yet.',     ar: 'مفيش تفريغات محفوظة لسه.' },
   'history-tasks':       { en: '{count} tasks',                 ar: '{count} مهمة' },
+  'history-load-btn':    { en: 'Load this dump',                ar: 'تحميل التفريغ' },
+  'history-import-btn':  { en: 'Import tasks into current session', ar: 'استيراد المهام للجلسة الحالية' },
+  'history-import-self': { en: 'These tasks are already in your current session.', ar: 'المهام دي موجودة بالفعل في جلستك الحالية.' },
+  'history-import-empty': { en: 'That dump has no tasks to import.', ar: 'التفريغ ده مفيهوش مهام للاستيراد.' },
+  'tasks-imported':      { en: '{count} tasks imported',         ar: 'اتستوردت {count} مهمة' },
+  'task-imported-one':   { en: '1 task imported',               ar: 'اتستوردت مهمة واحدة' },
 
   // ── Export dialog ──────────────────────────────────────────────────────────
   'export-title':        { en: 'Markdown Export',              ar: 'تصدير Markdown' },
