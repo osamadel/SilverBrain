@@ -8,8 +8,9 @@ if (typeof window !== "undefined" && !("__TAURI_INTERNALS__" in window)) {
 import { store } from "./store";
 import { PROVIDERS, providerMeta, isConfigured, DEFAULT_EXTRACTION_PROMPT } from "./llm";
 import type { ProviderId } from "./config";
+import { uid } from "./config";
 import { applyLanguage, t, getLang, type Lang } from "./i18n";
-import { refreshToasts } from "./toast";
+import { refreshToasts, showToast } from "./toast";
 import { initBrainDump, refreshBrainDumpChrome, refreshBrainDumpConfig, refreshDraft } from "./views/braindump";
 import { initSort, renderSort, requestFinishSort } from "./views/sort";
 import { initTodo, refreshTodoI18n, focusHighlightedTask, moveTaskFocus, toggleFocusedTaskDone, editFocusedTask, isQuadrantPickerOpen, openFocusedQuadrantPicker, closeQuadrantPickerMenu, moveQuadrantPickerFocus, selectFocusedQuadrantOption, requestDeleteFocusedTask } from "./views/todo";
@@ -364,6 +365,50 @@ function loadSession(id: string) {
   switchView("sort");
 }
 
+// Append a past dump's tasks into the current session (copy-only — the source
+// session is left untouched). New ids so the two task lists stay independent.
+function importSession(id: string) {
+  const src = store.data.sessions.find((s) => s.id === id);
+  if (!src) return;
+
+  // Importing the active session into itself would just duplicate its tasks.
+  if (id === store.data.activeSessionId) {
+    showToast({ type: "info", message: t("history-import-self"), messageKey: "history-import-self" });
+    return;
+  }
+
+  // An empty past dump has nothing to contribute — say so instead of a misleading
+  // "0 tasks imported" toast and a pointless view switch.
+  if (!src.tasks.length) {
+    showToast({ type: "info", message: t("history-import-empty"), messageKey: "history-import-empty" });
+    return;
+  }
+
+  const target = store.ensureActiveSession();
+  const imported = src.tasks.map((task) => ({
+    id: uid(),
+    text: task.text,
+    quadrant: task.quadrant,
+    suggestedQuadrant: task.suggestedQuadrant ?? task.quadrant,
+    done: false,
+  }));
+  target.tasks.push(...imported);
+  store.persistData();
+
+  refreshDraft();
+  renderSort();
+  refreshTodoI18n();
+  $("historyBackdrop").classList.add("hidden");
+  switchView("todo");
+
+  showToast({
+    type: "success",
+    message: imported.length === 1
+      ? t("task-imported-one")
+      : t("tasks-imported", { count: imported.length }),
+  });
+}
+
 function openHistory() {
   const list = $("historyList");
   const sessions = [...store.data.sessions].sort((a, b) => b.createdAt - a.createdAt);
@@ -374,9 +419,16 @@ function openHistory() {
   } else {
     const locale = getLang() === "ar" ? "ar-EG" : undefined;
     for (const s of sessions) {
-      const row = document.createElement("button");
+      // Row is a focusable div (not a button) so the action buttons can nest as
+      // valid HTML. Keyboard nav stays at row granularity (buttons are tabindex -1).
+      const row = document.createElement("div");
       row.className = "history-row";
+      row.tabIndex = 0;
+      row.dataset.id = s.id;
       if (s.id === store.data.activeSessionId) row.classList.add("active");
+
+      const body = document.createElement("div");
+      body.className = "history-row-body";
 
       const head = document.createElement("div");
       head.className = "history-row-head";
@@ -398,18 +450,70 @@ function openHistory() {
       meta.className = "history-row-meta";
       meta.textContent = t("history-tasks", { count: s.tasks.length });
 
-      row.append(head, preview, meta);
-      row.onclick = () => loadSession(s.id);
+      body.append(head, preview, meta);
+      body.onclick = () => loadSession(s.id);
+
+      const actions = document.createElement("div");
+      actions.className = "history-row-actions";
+
+      const loadBtn = document.createElement("button");
+      loadBtn.type = "button";
+      loadBtn.className = "history-action-btn";
+      loadBtn.tabIndex = -1;
+      loadBtn.title = t("history-load-btn");
+      loadBtn.setAttribute("aria-label", t("history-load-btn"));
+      loadBtn.innerHTML = `<span class="material-symbols-outlined">restore</span>`;
+      loadBtn.onclick = (e) => { e.stopPropagation(); loadSession(s.id); };
+
+      const importBtn = document.createElement("button");
+      importBtn.type = "button";
+      importBtn.className = "history-action-btn";
+      importBtn.tabIndex = -1;
+      importBtn.title = t("history-import-btn");
+      importBtn.setAttribute("aria-label", t("history-import-btn"));
+      importBtn.innerHTML = `<span class="material-symbols-outlined">playlist_add</span>`;
+      importBtn.onclick = (e) => { e.stopPropagation(); importSession(s.id); };
+
+      actions.append(loadBtn, importBtn);
+      row.append(body, actions);
       list.appendChild(row);
     }
   }
   $("historyBackdrop").classList.remove("hidden");
+
+  // Highlight the active row (or the first) so Enter / Shift+Enter have a target.
+  const initial =
+    list.querySelector<HTMLElement>(".history-row.active") ??
+    list.querySelector<HTMLElement>(".history-row");
+  requestAnimationFrame(() => initial?.focus());
 }
 
 function wireHistory() {
   $("historyCloseBtn").onclick = () => $("historyBackdrop").classList.add("hidden");
   $("historyBackdrop").addEventListener("click", function (e) {
     if (e.target === this) this.classList.add("hidden");
+  });
+
+  // Keyboard within the dialog: ↑/↓ move the highlight, Enter loads the
+  // highlighted dump, Shift+Enter imports its tasks into the current session.
+  $("historyList").addEventListener("keydown", (e) => {
+    const list = $("historyList");
+    const row = (e.target as HTMLElement).closest<HTMLElement>(".history-row");
+    const id = row?.dataset.id;
+    if (!row || !id) return;
+
+    if (e.key === "Enter" && e.shiftKey) {
+      e.preventDefault();
+      importSession(id);
+    } else if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      e.preventDefault();
+      loadSession(id);
+    } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const rows = [...list.querySelectorAll<HTMLElement>(".history-row")];
+      const next = rows[rows.indexOf(row) + (e.key === "ArrowDown" ? 1 : -1)];
+      next?.focus();
+    }
   });
 }
 
@@ -462,6 +566,14 @@ const HELP_GROUPS: {
       { keys: [MOD, "⇧", "]"], descKey: "kb-next-page" },
       { keys: [MOD, "/"], descKey: "kb-help" },
       { keys: ["Esc"], descKey: "kb-close" },
+    ],
+  },
+  {
+    titleKey: "kb-group-history",
+    rows: [
+      { keys: ["↑", "↓"], descKey: "kb-history-nav", sep: "/" },
+      { keys: ["↵"], descKey: "kb-history-load" },
+      { keys: ["⇧", "↵"], descKey: "kb-history-import" },
     ],
   },
   {
